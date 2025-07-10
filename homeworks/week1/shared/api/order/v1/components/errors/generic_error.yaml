@@ -1,0 +1,14 @@
+type: object
+required:
+  - error
+  - message
+properties:
+  error:
+    type: string
+    description: Код ошибки
+  message:
+    type: string
+    description: Человекочитаемое описание ошибки
+example:
+  error: "bad_request"
+  message: "Invalid request parameters" 

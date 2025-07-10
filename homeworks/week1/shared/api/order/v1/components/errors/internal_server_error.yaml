@@ -1,0 +1,8 @@
+allOf:
+  - $ref: './generic_error.yaml'
+  - type: object
+    properties:
+      error:
+        enum: ["internal_server_error"]
+      message:
+        example: "Внутренняя ошибка сервера"
