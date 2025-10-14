@@ -1,0 +1,37 @@
+# Mockery configuration aligned with homework week 2
+# Generate mocks for service and repository layers in each module
+# and place them under internal/<layer>/mocks with file names mock_<Interface>.go
+inpackage: false
+all: false
+force-file-write: true
+formatter: goimports
+log-level: info
+structname: 'Mock{{.InterfaceName}}'
+pkgname: '{{.SrcPackageName}}'
+# Where to put generated mocks by default: next to the interface in a `mocks` subdir
+# and use common file naming (snake_case interface name)
+filename: 'mock_{{ snakecase .InterfaceName }}.go'
+dir: '{{.InterfaceDir}}/mocks'
+recursive: false
+template: testify
+
+packages:
+  github.com/radiophysiker/microservices-homework/inventory/internal/repository:
+    config:
+      all: true
+  github.com/radiophysiker/microservices-homework/inventory/internal/service:
+    config:
+      all: true
+  github.com/radiophysiker/microservices-homework/order/internal/repository:
+    config:
+      all: true
+  github.com/radiophysiker/microservices-homework/order/internal/service:
+    config:
+      all: true
+  github.com/radiophysiker/microservices-homework/order/internal/client/grpc:
+    config:
+      all: true
+      recursive: true
+  github.com/radiophysiker/microservices-homework/payment/internal/service:
+    config:
+      all: true
