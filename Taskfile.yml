@@ -120,7 +120,7 @@ tasks:
       Зависимости:
         - install-golangci-lint: автоматически устанавливает линтер
         - format: форматирует код перед проверкой
-    deps: [ install-golangci-lint ]
+    deps: [ install-golangci-lint, format ]
     vars:
       MODULES: '{{.MODULES}}'
       GOLANGCI_LINT: '{{.GOLANGCI_LINT}}'
@@ -132,7 +132,8 @@ tasks:
         for mod in {{.MODULES}}; do
           if [ -d "$mod" ]; then
             echo "🔍 Линтим $mod module"
-            {{.GOLANGCI_LINT}} run $mod/... --config=.golangci.yml || ERR=1
+            cd "$mod" && {{.GOLANGCI_LINT}} run ./... --config=../.golangci.yml || ERR=1
+            cd ..
           fi
         done
         exit $ERR
