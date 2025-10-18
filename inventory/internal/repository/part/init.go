@@ -7,13 +7,13 @@ import (
 	pb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/inventory/v1"
 )
 
-// initTestData инициализирует тестовые данные
-func (r *Repository) initTestData() {
-	now := time.Now()
-
-	testParts := []*repoModel.Part{
+var (
+	mainEngineV8UUID = "550e8400-e29b-41d4-a716-446655440001"
+	fuelTankUUID     = "550e8400-e29b-41d4-a716-446655440002"
+	now              = time.Now()
+	testParts        = []*repoModel.Part{
 		{
-			UUID:          "550e8400-e29b-41d4-a716-446655440001",
+			UUID:          mainEngineV8UUID,
 			Name:          "Главный двигатель V8",
 			Description:   "Мощный ракетный двигатель для основной тяги",
 			Price:         50000.00,
@@ -35,7 +35,7 @@ func (r *Repository) initTestData() {
 			UpdatedAt: now,
 		},
 		{
-			UUID:          "550e8400-e29b-41d4-a716-446655440002",
+			UUID:          fuelTankUUID,
 			Name:          "Топливный бак",
 			Description:   "Герметичный топливный бак для ракетного топлива",
 			Price:         15000.00,
@@ -101,7 +101,10 @@ func (r *Repository) initTestData() {
 			UpdatedAt: now,
 		},
 	}
+)
 
+// initTestData инициализирует тестовые данные
+func (r *Repository) initTestData() {
 	for _, part := range testParts {
 		r.parts[part.UUID] = part
 	}

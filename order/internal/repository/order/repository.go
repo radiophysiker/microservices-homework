@@ -18,3 +18,10 @@ func NewRepository() *Repository {
 		orders: make(map[string]*repoModel.Order),
 	}
 }
+
+// GetOrderCount возвращает количество заказов в репозитории (для тестирования)
+func (r *Repository) GetOrderCount() int {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	return len(r.orders)
+}

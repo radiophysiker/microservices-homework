@@ -36,6 +36,8 @@ vars:
   OPEN_API_FILES: '{{.ROOT_DIR}}/shared/api'
 
   MODULES: assembly inventory order payment platform iam notification
+  COVERAGE_DIR: '{{.ROOT_DIR}}/.coverage'
+  COVERAGE_FILE: 'coverage.out'
 
 tasks:
   install-formatters:
