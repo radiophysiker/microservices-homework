@@ -335,7 +335,8 @@ tasks:
         for mod in {{.MODULES}}; do
           if [ -d "$mod" ]; then
             echo "🧪 Тестируем модуль $mod"
-            go test -v ./$mod/... || ERR=1
+            cd "$mod" && go test -v ./... || ERR=1
+            cd ..
           fi
         done
         exit $ERR
