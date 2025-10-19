@@ -12,12 +12,11 @@ var (
 	now              = time.Now()
 	testParts        = []*repoModel.Part{
 		{
-			UUID:          mainEngineV8UUID,
-			Name:          "Главный двигатель V8",
-			Description:   "Мощный ракетный двигатель для основной тяги",
-			Price:         50000.00,
-			StockQuantity: 10,
-			Category:      repoModel.CategoryEngine,
+			UUID:        mainEngineV8UUID,
+			Name:        "Главный двигатель V8",
+			Description: "Мощный ракетный двигатель для основной тяги",
+			Price:       50000.00,
+			Category:    repoModel.CategoryEngine,
 			Dimensions: &repoModel.Dimensions{
 				Length: 300.0,
 				Width:  150.0,
@@ -34,12 +33,11 @@ var (
 			UpdatedAt: now,
 		},
 		{
-			UUID:          fuelTankUUID,
-			Name:          "Топливный бак",
-			Description:   "Герметичный топливный бак для ракетного топлива",
-			Price:         15000.00,
-			StockQuantity: 25,
-			Category:      repoModel.CategoryFuel,
+			UUID:        fuelTankUUID,
+			Name:        "Топливный бак",
+			Description: "Герметичный топливный бак для ракетного топлива",
+			Price:       15000.00,
+			Category:    repoModel.CategoryFuel,
 			Dimensions: &repoModel.Dimensions{
 				Length: 400.0,
 				Width:  200.0,
@@ -56,12 +54,11 @@ var (
 			UpdatedAt: now,
 		},
 		{
-			UUID:          "550e8400-e29b-41d4-a716-446655440003",
-			Name:          "Обзорный иллюминатор",
-			Description:   "Прочный иллюминатор из закаленного стекла",
-			Price:         3000.00,
-			StockQuantity: 50,
-			Category:      repoModel.CategoryPorthole,
+			UUID:        "550e8400-e29b-41d4-a716-446655440003",
+			Name:        "Обзорный иллюминатор",
+			Description: "Прочный иллюминатор из закаленного стекла",
+			Price:       3000.00,
+			Category:    repoModel.CategoryPorthole,
 			Dimensions: &repoModel.Dimensions{
 				Length: 50.0,
 				Width:  50.0,
@@ -78,12 +75,11 @@ var (
 			UpdatedAt: now,
 		},
 		{
-			UUID:          "550e8400-e29b-41d4-a716-446655440004",
-			Name:          "Стабилизирующее крыло",
-			Description:   "Аэродинамическое крыло для стабилизации полета",
-			Price:         8000.00,
-			StockQuantity: 20,
-			Category:      repoModel.CategoryWing,
+			UUID:        "550e8400-e29b-41d4-a716-446655440004",
+			Name:        "Стабилизирующее крыло",
+			Description: "Аэродинамическое крыло для стабилизации полета",
+			Price:       8000.00,
+			Category:    repoModel.CategoryWing,
 			Dimensions: &repoModel.Dimensions{
 				Length: 500.0,
 				Width:  100.0,

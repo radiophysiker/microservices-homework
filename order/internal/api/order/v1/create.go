@@ -10,14 +10,14 @@ import (
 
 // CreateOrder создает новый заказ
 func (a *API) CreateOrder(ctx context.Context, req *orderv1.CreateOrderRequest) (orderv1.CreateOrderRes, error) {
-	if len(req.PartUuids) == 0 {
+	if len(req.GetPartUuids()) == 0 {
 		return &orderv1.BadRequestError{
 			Error:   orderv1.BadRequestErrorErrorBadRequest,
 			Message: "part UUIDs cannot be empty",
 		}, nil
 	}
 
-	order, err := a.orderService.CreateOrder(ctx, req.UserUUID, req.PartUuids)
+	order, err := a.orderService.CreateOrder(ctx, req.GetUserUUID(), req.GetPartUuids())
 	if err != nil {
 		if errors.Is(err, model.ErrInvalidOrderData) {
 			return &orderv1.BadRequestError{

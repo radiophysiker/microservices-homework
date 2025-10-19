@@ -12,17 +12,16 @@ func ToServicePart(repoPart *repoModel.Part) *model.Part {
 	}
 
 	return &model.Part{
-		UUID:          repoPart.UUID,
-		Name:          repoPart.Name,
-		Description:   repoPart.Description,
-		Price:         repoPart.Price,
-		StockQuantity: repoPart.StockQuantity,
-		Category:      toServiceCategory(repoPart.Category),
-		Dimensions:    toServiceDimensions(repoPart.Dimensions),
-		Manufacturer:  toServiceManufacturer(repoPart.Manufacturer),
-		Tags:          repoPart.Tags,
-		CreatedAt:     repoPart.CreatedAt,
-		UpdatedAt:     repoPart.UpdatedAt,
+		UUID:         repoPart.UUID,
+		Name:         repoPart.Name,
+		Description:  repoPart.Description,
+		Price:        repoPart.Price,
+		Category:     toServiceCategory(repoPart.Category),
+		Dimensions:   toServiceDimensions(repoPart.Dimensions),
+		Manufacturer: toServiceManufacturer(repoPart.Manufacturer),
+		Tags:         repoPart.Tags,
+		CreatedAt:    repoPart.CreatedAt,
+		UpdatedAt:    repoPart.UpdatedAt,
 	}
 }
 
@@ -47,17 +46,16 @@ func ToRepoPart(servicePart *model.Part) *repoModel.Part {
 	}
 
 	return &repoModel.Part{
-		UUID:          servicePart.UUID,
-		Name:          servicePart.Name,
-		Description:   servicePart.Description,
-		Price:         servicePart.Price,
-		StockQuantity: servicePart.StockQuantity,
-		Category:      ToRepoCategory(servicePart.Category),
-		Dimensions:    toRepoDimensions(servicePart.Dimensions),
-		Manufacturer:  toRepoManufacturer(servicePart.Manufacturer),
-		Tags:          servicePart.Tags,
-		CreatedAt:     servicePart.CreatedAt,
-		UpdatedAt:     servicePart.UpdatedAt,
+		UUID:         servicePart.UUID,
+		Name:         servicePart.Name,
+		Description:  servicePart.Description,
+		Price:        servicePart.Price,
+		Category:     ToRepoCategory(servicePart.Category),
+		Dimensions:   toRepoDimensions(servicePart.Dimensions),
+		Manufacturer: toRepoManufacturer(servicePart.Manufacturer),
+		Tags:         servicePart.Tags,
+		CreatedAt:    servicePart.CreatedAt,
+		UpdatedAt:    servicePart.UpdatedAt,
 	}
 }
 

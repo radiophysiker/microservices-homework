@@ -2,6 +2,7 @@ package part
 
 import (
 	"context"
+	"slices"
 
 	"github.com/radiophysiker/microservices-homework/inventory/internal/model"
 	"github.com/radiophysiker/microservices-homework/inventory/internal/repository/converter"
@@ -66,11 +67,8 @@ func filterPartsByUUIDs(parts []*repoModel.Part, uuids []string) []*repoModel.Pa
 	filtered := make([]*repoModel.Part, 0, len(uuids))
 
 	for _, part := range parts {
-		for _, uuid := range uuids {
-			if part.UUID == uuid {
-				filtered = append(filtered, part)
-				break
-			}
+		if slices.Contains(uuids, part.UUID) {
+			filtered = append(filtered, part)
 		}
 	}
 
@@ -82,11 +80,8 @@ func filterPartsByNames(parts []*repoModel.Part, names []string) []*repoModel.Pa
 	filtered := make([]*repoModel.Part, 0, len(names))
 
 	for _, part := range parts {
-		for _, name := range names {
-			if part.Name == name {
-				filtered = append(filtered, part)
-				break
-			}
+		if slices.Contains(names, part.Name) {
+			filtered = append(filtered, part)
 		}
 	}
 
@@ -98,11 +93,8 @@ func filterPartsByCategories(parts []*repoModel.Part, categories []repoModel.Cat
 	filtered := make([]*repoModel.Part, 0, len(categories))
 
 	for _, part := range parts {
-		for _, category := range categories {
-			if part.Category == category {
-				filtered = append(filtered, part)
-				break
-			}
+		if slices.Contains(categories, part.Category) {
+			filtered = append(filtered, part)
 		}
 	}
 
@@ -114,13 +106,8 @@ func filterPartsByManufacturerCountries(parts []*repoModel.Part, countries []str
 	filtered := make([]*repoModel.Part, 0, len(countries))
 
 	for _, part := range parts {
-		if part.Manufacturer != nil {
-			for _, country := range countries {
-				if part.Manufacturer.Country == country {
-					filtered = append(filtered, part)
-					break
-				}
-			}
+		if part.Manufacturer != nil && slices.Contains(countries, part.Manufacturer.Country) {
+			filtered = append(filtered, part)
 		}
 	}
 
@@ -133,17 +120,11 @@ func filterPartsByTags(parts []*repoModel.Part, tags []string) []*repoModel.Part
 
 	for _, part := range parts {
 		for _, partTag := range part.Tags {
-			for _, tag := range tags {
-				if partTag == tag {
-					filtered = append(filtered, part)
-					goto nextPart
-				}
+			if slices.Contains(tags, partTag) {
+				filtered = append(filtered, part)
+				break
 			}
 		}
-
-		continue
-	nextPart:
-		filtered = append(filtered, part)
 	}
 
 	return filtered

@@ -31,5 +31,5 @@ func (c *Client) ListParts(ctx context.Context, partUUIDs []string) ([]*model.Pa
 		return nil, fmt.Errorf("failed to list parts: %w", err)
 	}
 
-	return model.ToServiceParts(resp.Parts), nil
+	return model.ToServiceParts(resp.GetParts()), nil
 }

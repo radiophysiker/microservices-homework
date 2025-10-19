@@ -18,9 +18,9 @@ func ToServicePart(pbPart *inventorypb.Part) *Part {
 	}
 
 	return &Part{
-		UUID:  pbPart.Uuid,
-		Name:  pbPart.Name,
-		Price: pbPart.Price,
+		UUID:  pbPart.GetUuid(),
+		Name:  pbPart.GetName(),
+		Price: pbPart.GetPrice(),
 	}
 }
 

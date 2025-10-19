@@ -17,17 +17,16 @@ const (
 
 // Part представляет сущность детали в repository слое
 type Part struct {
-	UUID          string
-	Name          string
-	Description   string
-	Price         float64
-	StockQuantity int32
-	Category      Category
-	Dimensions    *Dimensions
-	Manufacturer  *Manufacturer
-	Tags          []string
-	CreatedAt     time.Time
-	UpdatedAt     time.Time
+	UUID         string
+	Name         string
+	Description  string
+	Price        float64
+	Category     Category
+	Dimensions   *Dimensions
+	Manufacturer *Manufacturer
+	Tags         []string
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 }
 
 // Dimensions представляет размеры детали

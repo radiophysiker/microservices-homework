@@ -30,5 +30,5 @@ func (c *Client) PayOrder(ctx context.Context, userUUID, orderUUID string, payme
 		return "", fmt.Errorf("failed to pay order: %w", err)
 	}
 
-	return resp.TransactionUuid, nil
+	return resp.GetTransactionUuid(), nil
 }

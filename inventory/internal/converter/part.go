@@ -14,17 +14,16 @@ func ToProtoPart(p *model.Part) *pb.Part {
 	}
 
 	return &pb.Part{
-		Uuid:          p.UUID,
-		Name:          p.Name,
-		Description:   p.Description,
-		Price:         p.Price,
-		StockQuantity: int64(p.StockQuantity),
-		Category:      toProtoCategory(p.Category),
-		Dimensions:    toProtoDimensions(p.Dimensions),
-		Manufacturer:  toProtoManufacturer(p.Manufacturer),
-		Tags:          p.Tags,
-		CreatedAt:     timestamppb.New(p.CreatedAt),
-		UpdatedAt:     timestamppb.New(p.UpdatedAt),
+		Uuid:         p.UUID,
+		Name:         p.Name,
+		Description:  p.Description,
+		Price:        p.Price,
+		Category:     toProtoCategory(p.Category),
+		Dimensions:   toProtoDimensions(p.Dimensions),
+		Manufacturer: toProtoManufacturer(p.Manufacturer),
+		Tags:         p.Tags,
+		CreatedAt:    timestamppb.New(p.CreatedAt),
+		UpdatedAt:    timestamppb.New(p.UpdatedAt),
 	}
 }
 
@@ -49,11 +48,11 @@ func ToModelFilter(filter *pb.PartsFilter) *model.Filter {
 	}
 
 	return &model.Filter{
-		UUIDs:                 filter.Uuids,
-		Names:                 filter.Names,
-		Categories:            toModelCategories(filter.Categories),
-		ManufacturerCountries: filter.ManufacturerCountries,
-		Tags:                  filter.Tags,
+		UUIDs:                 filter.GetUuids(),
+		Names:                 filter.GetNames(),
+		Categories:            toModelCategories(filter.GetCategories()),
+		ManufacturerCountries: filter.GetManufacturerCountries(),
+		Tags:                  filter.GetTags(),
 	}
 }
 

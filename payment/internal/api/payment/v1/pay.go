@@ -13,7 +13,7 @@ import (
 
 // PayOrder проводит оплату заказа
 func (a *API) PayOrder(ctx context.Context, req *pb.PayOrderRequest) (*pb.PayOrderResponse, error) {
-	transactionUUID, err := a.paymentService.PayOrder(ctx, req.UserUuid, req.OrderUuid, req.PaymentMethod)
+	transactionUUID, err := a.paymentService.PayOrder(ctx, req.GetUserUuid(), req.GetOrderUuid(), req.GetPaymentMethod())
 	if err != nil {
 		if errors.Is(err, model.ErrInvalidPaymentRequest) {
 			return nil, status.Error(codes.InvalidArgument, "invalid payment request")

@@ -16,11 +16,11 @@ func (a *API) GetPart(ctx context.Context, req *pb.GetPartRequest) (*pb.GetPartR
 	part, err := a.partService.GetPart(ctx, req.GetUuid())
 	if err != nil {
 		if errors.Is(err, model.ErrInvalidUUID) {
-			return nil, status.Errorf(codes.InvalidArgument, "invalid uuid: %s", req.Uuid)
+			return nil, status.Errorf(codes.InvalidArgument, "invalid uuid: %s", req.GetUuid())
 		}
 
 		if errors.Is(err, model.ErrPartNotFound) {
-			return nil, status.Errorf(codes.NotFound, "part with uuid %s not found", req.Uuid)
+			return nil, status.Errorf(codes.NotFound, "part with uuid %s not found", req.GetUuid())
 		}
 
 		return nil, status.Error(codes.Internal, "internal error")

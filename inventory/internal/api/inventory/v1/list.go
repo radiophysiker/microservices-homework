@@ -12,7 +12,7 @@ import (
 
 // ListParts возвращает список деталей с возможностью фильтрации
 func (a *API) ListParts(ctx context.Context, req *pb.ListPartsRequest) (*pb.ListPartsResponse, error) {
-	filter := converter.ToModelFilter(req.Filter)
+	filter := converter.ToModelFilter(req.GetFilter())
 
 	parts, err := a.partService.ListParts(ctx, filter)
 	if err != nil {

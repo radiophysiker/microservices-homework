@@ -14,7 +14,7 @@ func (r *Repository) GetPart(_ context.Context, uuid string) (*model.Part, error
 
 	part, exists := r.parts[uuid]
 	if !exists {
-		return nil, model.NewPartNotFoundError(uuid)
+		return nil, model.NewErrPartNotFound(uuid)
 	}
 
 	return converter.ToServicePart(part), nil

@@ -11,7 +11,7 @@ import (
 
 // PayOrder проводит оплату заказа
 func (a *API) PayOrder(ctx context.Context, req *orderv1.PayOrderRequest, params orderv1.PayOrderParams) (orderv1.PayOrderRes, error) {
-	paymentMethod := converter.ToModelPaymentMethod(req.PaymentMethod)
+	paymentMethod := converter.ToModelPaymentMethod(req.GetPaymentMethod())
 
 	order, err := a.orderService.PayOrder(ctx, params.OrderUUID, paymentMethod)
 	if err != nil {
