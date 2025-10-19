@@ -6,12 +6,13 @@ import (
 	"log"
 
 	"github.com/google/uuid"
+
 	"github.com/radiophysiker/microservices-homework/payment/internal/model"
 	pb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/payment/v1"
 )
 
 // PayOrder проводит оплату заказа
-func (s *Service) PayOrder(ctx context.Context, userUUID, orderUUID string, paymentMethod pb.PaymentMethod) (string, error) {
+func (s *Service) PayOrder(_ context.Context, userUUID, orderUUID string, paymentMethod pb.PaymentMethod) (string, error) {
 	if userUUID == "" || orderUUID == "" {
 		return "", model.ErrInvalidPaymentRequest
 	}

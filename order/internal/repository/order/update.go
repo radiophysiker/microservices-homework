@@ -8,7 +8,7 @@ import (
 )
 
 // UpdateOrder обновляет заказ
-func (r *Repository) UpdateOrder(ctx context.Context, order *model.Order) error {
+func (r *Repository) UpdateOrder(_ context.Context, order *model.Order) error {
 	repoOrder := converter.ToRepoOrder(order)
 
 	r.mu.Lock()
@@ -20,5 +20,6 @@ func (r *Repository) UpdateOrder(ctx context.Context, order *model.Order) error 
 	}
 
 	r.orders[order.OrderUUID.String()] = repoOrder
+
 	return nil
 }

@@ -3,8 +3,9 @@ package part
 import (
 	"errors"
 
-	"github.com/radiophysiker/microservices-homework/inventory/internal/model"
 	"github.com/stretchr/testify/require"
+
+	"github.com/radiophysiker/microservices-homework/inventory/internal/model"
 )
 
 // TestGetPart проверяет метод GetPart с различными сценариями
@@ -99,6 +100,7 @@ func (s *ServiceTestSuite) TestGetPart() {
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			tt.setupMock()
+
 			part, err := s.service.GetPart(s.ctx, tt.uuid)
 
 			if tt.checkErr != nil {
@@ -114,6 +116,7 @@ func (s *ServiceTestSuite) TestGetPart() {
 				require.Equal(s.T(), tt.wantPart.UUID, part.UUID)
 				require.Equal(s.T(), tt.wantPart.Name, part.Name)
 				require.Equal(s.T(), tt.wantPart.Price, part.Price)
+
 				if tt.wantPart.Description != "" {
 					require.Equal(s.T(), tt.wantPart.Description, part.Description)
 				}

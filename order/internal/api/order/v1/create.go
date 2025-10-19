@@ -25,12 +25,14 @@ func (a *API) CreateOrder(ctx context.Context, req *orderv1.CreateOrderRequest) 
 				Message: err.Error(),
 			}, nil
 		}
+
 		if errors.Is(err, model.ErrInventoryServiceUnavailable) {
 			return &orderv1.InternalServerError{
 				Error:   orderv1.InternalServerErrorErrorInternalServerError,
 				Message: "inventory service unavailable",
 			}, nil
 		}
+
 		return &orderv1.InternalServerError{
 			Error:   orderv1.InternalServerErrorErrorInternalServerError,
 			Message: "failed to create order",

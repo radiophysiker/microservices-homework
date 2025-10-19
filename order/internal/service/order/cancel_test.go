@@ -4,12 +4,13 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
-	"github.com/radiophysiker/microservices-homework/order/internal/model"
-	repomocks "github.com/radiophysiker/microservices-homework/order/internal/repository/mocks"
-	orderv1 "github.com/radiophysiker/microservices-homework/shared/pkg/openapi/order/v1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
+
+	"github.com/radiophysiker/microservices-homework/order/internal/model"
+	repomocks "github.com/radiophysiker/microservices-homework/order/internal/repository/mocks"
+	orderv1 "github.com/radiophysiker/microservices-homework/shared/pkg/openapi/order/v1"
 )
 
 func (s *ServiceTestSuite) TestCancelOrder() {
@@ -90,6 +91,7 @@ func (s *ServiceTestSuite) TestCancelOrder() {
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			tt.setupMock(s.repo)
+
 			got, err := s.service.CancelOrder(s.ctx, tt.orderUUID)
 
 			if tt.checkErr != nil {

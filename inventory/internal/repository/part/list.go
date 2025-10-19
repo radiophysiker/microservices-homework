@@ -10,7 +10,7 @@ import (
 )
 
 // ListParts возвращает список деталей с возможностью фильтрации
-func (r *Repository) ListParts(ctx context.Context, filter *model.Filter) ([]*model.Part, error) {
+func (r *Repository) ListParts(_ context.Context, filter *model.Filter) ([]*model.Part, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -60,6 +60,7 @@ func isEmptyFilter(filter *model.Filter) bool {
 // filterPartsByUUIDs фильтрует детали по UUID
 func filterPartsByUUIDs(parts []*repoModel.Part, uuids []string) []*repoModel.Part {
 	filtered := make([]*repoModel.Part, 0, len(uuids))
+
 	for _, part := range parts {
 		for _, uuid := range uuids {
 			if part.UUID == uuid {
@@ -68,12 +69,14 @@ func filterPartsByUUIDs(parts []*repoModel.Part, uuids []string) []*repoModel.Pa
 			}
 		}
 	}
+
 	return filtered
 }
 
 // filterPartsByNames фильтрует детали по названиям
 func filterPartsByNames(parts []*repoModel.Part, names []string) []*repoModel.Part {
 	filtered := make([]*repoModel.Part, 0, len(names))
+
 	for _, part := range parts {
 		for _, name := range names {
 			if part.Name == name {
@@ -82,12 +85,14 @@ func filterPartsByNames(parts []*repoModel.Part, names []string) []*repoModel.Pa
 			}
 		}
 	}
+
 	return filtered
 }
 
 // filterPartsByCategories фильтрует детали по категориям
 func filterPartsByCategories(parts []*repoModel.Part, categories []pb.Category) []*repoModel.Part {
 	filtered := make([]*repoModel.Part, 0, len(categories))
+
 	for _, part := range parts {
 		for _, category := range categories {
 			if part.Category == category {
@@ -96,12 +101,14 @@ func filterPartsByCategories(parts []*repoModel.Part, categories []pb.Category) 
 			}
 		}
 	}
+
 	return filtered
 }
 
 // filterPartsByManufacturerCountries фильтрует детали по странам производителей
 func filterPartsByManufacturerCountries(parts []*repoModel.Part, countries []string) []*repoModel.Part {
 	filtered := make([]*repoModel.Part, 0, len(countries))
+
 	for _, part := range parts {
 		if part.Manufacturer != nil {
 			for _, country := range countries {
@@ -112,12 +119,14 @@ func filterPartsByManufacturerCountries(parts []*repoModel.Part, countries []str
 			}
 		}
 	}
+
 	return filtered
 }
 
 // filterPartsByTags фильтрует детали по тегам
 func filterPartsByTags(parts []*repoModel.Part, tags []string) []*repoModel.Part {
 	filtered := make([]*repoModel.Part, 0, len(parts))
+
 	for _, part := range parts {
 		for _, partTag := range part.Tags {
 			for _, tag := range tags {
@@ -127,9 +136,11 @@ func filterPartsByTags(parts []*repoModel.Part, tags []string) []*repoModel.Part
 				}
 			}
 		}
+
 		continue
 	nextPart:
 		filtered = append(filtered, part)
 	}
+
 	return filtered
 }

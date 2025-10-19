@@ -4,13 +4,14 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+
 	clientmocks "github.com/radiophysiker/microservices-homework/order/internal/client/grpc/mocks"
 	"github.com/radiophysiker/microservices-homework/order/internal/model"
 	repomocks "github.com/radiophysiker/microservices-homework/order/internal/repository/mocks"
 	orderv1 "github.com/radiophysiker/microservices-homework/shared/pkg/openapi/order/v1"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
 )
 
 func (s *ServiceTestSuite) TestCreateOrder() {
@@ -70,10 +71,12 @@ func (s *ServiceTestSuite) TestCreateOrder() {
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			tt.setupMock(s.repo, s.inventoryClient, s.paymentClient)
+
 			got, err := s.service.CreateOrder(s.ctx, tt.userUUID, tt.partUUIDs)
 
 			if tt.checkErr != nil {
 				tt.checkErr(err)
+
 				if err != nil {
 					require.Nil(s.T(), got)
 				}

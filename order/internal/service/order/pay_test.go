@@ -4,14 +4,15 @@ import (
 	"errors"
 
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
+	"github.com/stretchr/testify/require"
+
 	clientmocks "github.com/radiophysiker/microservices-homework/order/internal/client/grpc/mocks"
 	"github.com/radiophysiker/microservices-homework/order/internal/model"
 	repomocks "github.com/radiophysiker/microservices-homework/order/internal/repository/mocks"
 	orderv1 "github.com/radiophysiker/microservices-homework/shared/pkg/openapi/order/v1"
 	paymentpb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/payment/v1"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
-	"github.com/stretchr/testify/require"
 )
 
 func (s *ServiceTestSuite) TestPayOrder() {
@@ -82,6 +83,7 @@ func (s *ServiceTestSuite) TestPayOrder() {
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			tt.setupMock(s.repo, s.paymentClient)
+
 			got, err := s.service.PayOrder(s.ctx, tt.orderUUID, tt.paymentMethod)
 
 			if tt.checkErr != nil {

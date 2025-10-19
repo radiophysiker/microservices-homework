@@ -4,8 +4,9 @@ import (
 	"context"
 	"testing"
 
-	repomocks "github.com/radiophysiker/microservices-homework/inventory/internal/repository/mocks"
 	"github.com/stretchr/testify/suite"
+
+	repomocks "github.com/radiophysiker/microservices-homework/inventory/internal/repository/mocks"
 )
 
 type ServiceTestSuite struct {

@@ -4,10 +4,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/stretchr/testify/suite"
+
 	"github.com/radiophysiker/microservices-homework/inventory/internal/model"
 	repoModel "github.com/radiophysiker/microservices-homework/inventory/internal/repository/model"
 	pb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/inventory/v1"
-	"github.com/stretchr/testify/suite"
 )
 
 // ConverterTestSuite тестовый набор для конвертера репозитория

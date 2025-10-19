@@ -5,10 +5,11 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	"github.com/radiophysiker/microservices-homework/payment/internal/model"
-	pb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/payment/v1"
 	"github.com/stretchr/testify/require"
 	"github.com/stretchr/testify/suite"
+
+	"github.com/radiophysiker/microservices-homework/payment/internal/model"
+	pb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/payment/v1"
 )
 
 type ServiceSuite struct {
@@ -49,14 +50,17 @@ func (s *ServiceSuite) TestPayOrder() {
 			if tt.wantErr != nil {
 				require.Error(s.T(), err)
 				require.ErrorIs(s.T(), err, tt.wantErr)
+
 				if tt.wantErrSubstr != "" {
 					require.Contains(s.T(), err.Error(), tt.wantErrSubstr)
 				}
+
 				return
 			}
 
 			require.NoError(s.T(), err)
 			require.NotEmpty(s.T(), id)
+
 			_, perr := uuid.Parse(id)
 			require.NoError(s.T(), perr)
 		})

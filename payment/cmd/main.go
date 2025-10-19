@@ -4,11 +4,12 @@ import (
 	"log"
 	"net"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
+
 	apiv1 "github.com/radiophysiker/microservices-homework/payment/internal/api/payment/v1"
 	paymentSvc "github.com/radiophysiker/microservices-homework/payment/internal/service/payment"
 	pb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/payment/v1"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
 
 func main() {
@@ -25,6 +26,7 @@ func main() {
 	reflection.Register(s)
 
 	log.Println("PaymentService listening on :50052")
+
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}

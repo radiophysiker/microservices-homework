@@ -8,12 +8,13 @@ import (
 )
 
 // CreateOrder создает новый заказ
-func (r *Repository) CreateOrder(ctx context.Context, order *model.Order) error {
+func (r *Repository) CreateOrder(_ context.Context, order *model.Order) error {
 	repoOrder := converter.ToRepoOrder(order)
 
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
 	r.orders[order.OrderUUID.String()] = repoOrder
+
 	return nil
 }

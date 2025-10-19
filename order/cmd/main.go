@@ -6,6 +6,9 @@ import (
 	"net/http"
 	"time"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
+
 	apiv1 "github.com/radiophysiker/microservices-homework/order/internal/api/order/v1"
 	inventoryClient "github.com/radiophysiker/microservices-homework/order/internal/client/grpc/inventory/v1"
 	paymentClient "github.com/radiophysiker/microservices-homework/order/internal/client/grpc/payment/v1"
@@ -14,8 +17,6 @@ import (
 	orderv1 "github.com/radiophysiker/microservices-homework/shared/pkg/openapi/order/v1"
 	inventorypb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/inventory/v1"
 	paymentpb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/payment/v1"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 )
 
 func main() {
@@ -56,6 +57,7 @@ func main() {
 	}
 
 	log.Println("OrderService listening on :8080")
+
 	if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 		log.Fatalf("Failed to serve: %v", err)
 	}

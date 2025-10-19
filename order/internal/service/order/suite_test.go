@@ -4,9 +4,10 @@ import (
 	"context"
 	"testing"
 
+	"github.com/stretchr/testify/suite"
+
 	clientmocks "github.com/radiophysiker/microservices-homework/order/internal/client/grpc/mocks"
 	repomocks "github.com/radiophysiker/microservices-homework/order/internal/repository/mocks"
-	"github.com/stretchr/testify/suite"
 )
 
 // ServiceTestSuite содержит общее окружение для всех тестов сервиса

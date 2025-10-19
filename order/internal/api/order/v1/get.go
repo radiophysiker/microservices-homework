@@ -19,6 +19,7 @@ func (a *API) GetOrder(ctx context.Context, params orderv1.GetOrderParams) (orde
 				Message: "order not found",
 			}, nil
 		}
+
 		return &orderv1.InternalServerError{
 			Error:   orderv1.InternalServerErrorErrorInternalServerError,
 			Message: "failed to get order",

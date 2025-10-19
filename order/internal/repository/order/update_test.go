@@ -2,9 +2,10 @@ package order
 
 import (
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/require"
+
 	"github.com/radiophysiker/microservices-homework/order/internal/model"
 	orderv1 "github.com/radiophysiker/microservices-homework/shared/pkg/openapi/order/v1"
-	"github.com/stretchr/testify/require"
 )
 
 // TestUpdateOrder проверяет обновление заказа
@@ -100,10 +101,12 @@ func (s *RepositoryTestSuite) TestUpdateOrder() {
 				require.Equal(s.T(), tt.order.TotalPrice, updatedOrder.TotalPrice)
 				require.Equal(s.T(), tt.order.Status, updatedOrder.Status)
 				require.Equal(s.T(), len(tt.order.PartUUIDs), len(updatedOrder.PartUUIDs))
+
 				if tt.order.TransactionUUID != nil {
 					require.NotNil(s.T(), updatedOrder.TransactionUUID)
 					require.Equal(s.T(), *tt.order.TransactionUUID, *updatedOrder.TransactionUUID)
 				}
+
 				if tt.order.PaymentMethod != nil {
 					require.NotNil(s.T(), updatedOrder.PaymentMethod)
 					require.Equal(s.T(), *tt.order.PaymentMethod, *updatedOrder.PaymentMethod)

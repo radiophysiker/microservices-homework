@@ -5,9 +5,10 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/radiophysiker/microservices-homework/order/internal/model"
 	orderv1 "github.com/radiophysiker/microservices-homework/shared/pkg/openapi/order/v1"
-	"github.com/stretchr/testify/suite"
 )
 
 // RepositoryTestSuite содержит общее окружение для всех тестов репозитория

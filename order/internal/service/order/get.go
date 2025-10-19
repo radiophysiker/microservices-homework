@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+
 	"github.com/radiophysiker/microservices-homework/order/internal/model"
 )
 

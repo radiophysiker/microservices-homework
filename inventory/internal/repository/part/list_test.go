@@ -1,8 +1,9 @@
 package part
 
 import (
-	"github.com/radiophysiker/microservices-homework/inventory/internal/model"
 	"github.com/stretchr/testify/require"
+
+	"github.com/radiophysiker/microservices-homework/inventory/internal/model"
 )
 
 // TestListParts проверяет метод ListParts репозитория

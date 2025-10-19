@@ -18,6 +18,7 @@ func ToOrderDto(serviceOrder *model.Order) *orderv1.OrderDto {
 	}
 
 	var paymentMethod *orderv1.NilOrderDtoPaymentMethod
+
 	if serviceOrder.PaymentMethod != nil {
 		pm := orderv1.NewNilOrderDtoPaymentMethod(*serviceOrder.PaymentMethod)
 		paymentMethod = &pm

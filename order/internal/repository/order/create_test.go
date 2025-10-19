@@ -2,9 +2,10 @@ package order
 
 import (
 	"github.com/google/uuid"
+	"github.com/stretchr/testify/require"
+
 	"github.com/radiophysiker/microservices-homework/order/internal/model"
 	orderv1 "github.com/radiophysiker/microservices-homework/shared/pkg/openapi/order/v1"
-	"github.com/stretchr/testify/require"
 )
 
 // TestCreateOrder проверяет создание заказа
@@ -86,6 +87,7 @@ func (s *RepositoryTestSuite) TestCreateOrder() {
 			err := s.repo.CreateOrder(s.ctx, tt.order)
 
 			require.NoError(s.T(), err)
+
 			createdOrder, getErr := s.repo.GetOrder(s.ctx, tt.order.OrderUUID.String())
 			require.NoError(s.T(), getErr)
 			require.NotNil(s.T(), createdOrder)

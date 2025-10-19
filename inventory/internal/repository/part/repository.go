@@ -18,5 +18,6 @@ func NewRepository() *Repository {
 		parts: make(map[string]*repoModel.Part),
 	}
 	repo.initTestData()
+
 	return repo
 }

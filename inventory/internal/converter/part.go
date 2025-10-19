@@ -1,9 +1,10 @@
 package converter
 
 import (
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	"github.com/radiophysiker/microservices-homework/inventory/internal/model"
 	pb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/inventory/v1"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // ToProtoPart converts domain model.Part to protobuf Part for the transport layer
@@ -61,6 +62,7 @@ func toProtoDimensions(d *model.Dimensions) *pb.Dimensions {
 	if d == nil {
 		return nil
 	}
+
 	return &pb.Dimensions{
 		Length: d.Length,
 		Width:  d.Width,
@@ -73,6 +75,7 @@ func toProtoManufacturer(m *model.Manufacturer) *pb.Manufacturer {
 	if m == nil {
 		return nil
 	}
+
 	return &pb.Manufacturer{
 		Name:    m.Name,
 		Country: m.Country,

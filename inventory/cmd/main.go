@@ -4,12 +4,13 @@ import (
 	"log"
 	"net"
 
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
+
 	apiv1 "github.com/radiophysiker/microservices-homework/inventory/internal/api/inventory/v1"
 	partRepo "github.com/radiophysiker/microservices-homework/inventory/internal/repository/part"
 	partSvc "github.com/radiophysiker/microservices-homework/inventory/internal/service/part"
 	pb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/inventory/v1"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
 
 func main() {
@@ -27,6 +28,7 @@ func main() {
 	reflection.Register(s)
 
 	log.Println("InventoryService listening on :50051")
+
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}

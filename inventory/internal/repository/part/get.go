@@ -8,7 +8,7 @@ import (
 )
 
 // GetPart возвращает деталь по UUID
-func (r *Repository) GetPart(ctx context.Context, uuid string) (*model.Part, error) { // ctx is currently unused; kept for interface compatibility
+func (r *Repository) GetPart(_ context.Context, uuid string) (*model.Part, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
@@ -16,5 +16,6 @@ func (r *Repository) GetPart(ctx context.Context, uuid string) (*model.Part, err
 	if !exists {
 		return nil, model.NewPartNotFoundError(uuid)
 	}
+
 	return converter.ToServicePart(part), nil
 }

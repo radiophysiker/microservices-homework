@@ -3,8 +3,9 @@ package part
 import (
 	"errors"
 
-	"github.com/radiophysiker/microservices-homework/inventory/internal/model"
 	"github.com/stretchr/testify/require"
+
+	"github.com/radiophysiker/microservices-homework/inventory/internal/model"
 )
 
 // TestListParts проверяет метод ListParts с различными сценариями
@@ -122,6 +123,7 @@ func (s *ServiceTestSuite) TestListParts() {
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
 			tt.setupMock()
+
 			parts, err := s.service.ListParts(s.ctx, tt.filter)
 
 			if tt.checkErr != nil {
@@ -133,10 +135,12 @@ func (s *ServiceTestSuite) TestListParts() {
 				require.Nil(s.T(), parts)
 			} else {
 				require.NoError(s.T(), err)
+
 				if tt.wantParts == nil {
 					require.Nil(s.T(), parts)
 				} else {
 					require.Equal(s.T(), len(tt.wantParts), len(parts))
+
 					for i, want := range tt.wantParts {
 						require.Equal(s.T(), want.UUID, parts[i].UUID)
 						require.Equal(s.T(), want.Name, parts[i].Name)

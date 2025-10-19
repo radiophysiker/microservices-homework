@@ -2,6 +2,7 @@ package model
 
 import (
 	"github.com/google/uuid"
+
 	orderv1 "github.com/radiophysiker/microservices-homework/shared/pkg/openapi/order/v1"
 )
 
