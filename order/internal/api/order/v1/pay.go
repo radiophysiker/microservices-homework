@@ -4,13 +4,16 @@ import (
 	"context"
 	"errors"
 
+	"github.com/radiophysiker/microservices-homework/order/internal/converter"
 	"github.com/radiophysiker/microservices-homework/order/internal/model"
 	orderv1 "github.com/radiophysiker/microservices-homework/shared/pkg/openapi/order/v1"
 )
 
 // PayOrder проводит оплату заказа
 func (a *API) PayOrder(ctx context.Context, req *orderv1.PayOrderRequest, params orderv1.PayOrderParams) (orderv1.PayOrderRes, error) {
-	order, err := a.orderService.PayOrder(ctx, params.OrderUUID, req.PaymentMethod)
+	paymentMethod := converter.ToModelPaymentMethod(req.PaymentMethod)
+
+	order, err := a.orderService.PayOrder(ctx, params.OrderUUID, paymentMethod)
 	if err != nil {
 		switch {
 		case errors.Is(err, model.ErrOrderNotFound):

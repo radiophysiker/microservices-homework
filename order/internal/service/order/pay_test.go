@@ -11,7 +11,6 @@ import (
 	clientmocks "github.com/radiophysiker/microservices-homework/order/internal/client/grpc/mocks"
 	"github.com/radiophysiker/microservices-homework/order/internal/model"
 	repomocks "github.com/radiophysiker/microservices-homework/order/internal/repository/mocks"
-	orderv1 "github.com/radiophysiker/microservices-homework/shared/pkg/openapi/order/v1"
 	paymentpb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/payment/v1"
 )
 
@@ -19,7 +18,7 @@ func (s *ServiceTestSuite) TestPayOrder() {
 	tests := []struct {
 		name          string
 		orderUUID     uuid.UUID
-		paymentMethod orderv1.PaymentMethod
+		paymentMethod model.PaymentMethod
 		setupMock     func(*repomocks.MockOrderRepository, *clientmocks.MockPaymentClient)
 		wantOrder     *model.Order
 		checkErr      func(err error)
@@ -27,12 +26,12 @@ func (s *ServiceTestSuite) TestPayOrder() {
 		{
 			name:          "success",
 			orderUUID:     uuid.New(),
-			paymentMethod: orderv1.PaymentMethodCARD,
+			paymentMethod: model.PaymentMethodCard,
 			setupMock: func(repo *repomocks.MockOrderRepository, pay *clientmocks.MockPaymentClient) {
 				order := &model.Order{
 					OrderUUID:  uuid.New(),
 					UserUUID:   uuid.New(),
-					Status:     orderv1.OrderStatusPENDINGPAYMENT,
+					Status:     model.StatusPendingPayment,
 					TotalPrice: 100,
 				}
 				repo.EXPECT().GetOrder(s.ctx, mock.AnythingOfType("string")).Return(order, nil).Once()
@@ -40,13 +39,13 @@ func (s *ServiceTestSuite) TestPayOrder() {
 				repo.EXPECT().UpdateOrder(s.ctx, mock.AnythingOfType("*model.Order")).Return(nil).Once()
 			},
 			wantOrder: &model.Order{
-				Status: orderv1.OrderStatusPAID,
+				Status: model.StatusPaid,
 			},
 		},
 		{
 			name:          "get_order_error",
 			orderUUID:     uuid.New(),
-			paymentMethod: orderv1.PaymentMethodCARD,
+			paymentMethod: model.PaymentMethodCard,
 			setupMock: func(repo *repomocks.MockOrderRepository, pay *clientmocks.MockPaymentClient) {
 				repo.EXPECT().GetOrder(s.ctx, mock.AnythingOfType("string")).Return((*model.Order)(nil), errors.New("order not found")).Once()
 			},
@@ -60,12 +59,12 @@ func (s *ServiceTestSuite) TestPayOrder() {
 		{
 			name:          "payment_error",
 			orderUUID:     uuid.New(),
-			paymentMethod: orderv1.PaymentMethodCARD,
+			paymentMethod: model.PaymentMethodCard,
 			setupMock: func(repo *repomocks.MockOrderRepository, pay *clientmocks.MockPaymentClient) {
 				order := &model.Order{
 					OrderUUID:  uuid.New(),
 					UserUUID:   uuid.New(),
-					Status:     orderv1.OrderStatusPENDINGPAYMENT,
+					Status:     model.StatusPendingPayment,
 					TotalPrice: 100,
 				}
 				repo.EXPECT().GetOrder(s.ctx, mock.AnythingOfType("string")).Return(order, nil).Once()

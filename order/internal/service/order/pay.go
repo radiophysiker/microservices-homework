@@ -8,11 +8,10 @@ import (
 
 	"github.com/radiophysiker/microservices-homework/order/internal/converter"
 	"github.com/radiophysiker/microservices-homework/order/internal/model"
-	orderv1 "github.com/radiophysiker/microservices-homework/shared/pkg/openapi/order/v1"
 )
 
 // PayOrder проводит оплату заказа
-func (s *Service) PayOrder(ctx context.Context, orderUUID uuid.UUID, paymentMethod orderv1.PaymentMethod) (*model.Order, error) {
+func (s *Service) PayOrder(ctx context.Context, orderUUID uuid.UUID, paymentMethod model.PaymentMethod) (*model.Order, error) {
 	// Получаем заказ
 	order, err := s.orderRepository.GetOrder(ctx, orderUUID.String())
 	if err != nil {
@@ -20,7 +19,7 @@ func (s *Service) PayOrder(ctx context.Context, orderUUID uuid.UUID, paymentMeth
 	}
 
 	// Проверяем, что заказ может быть оплачен
-	if order.Status != orderv1.OrderStatusPENDINGPAYMENT {
+	if order.Status != model.StatusPendingPayment {
 		return nil, model.ErrOrderCannotBePaid
 	}
 
@@ -42,11 +41,9 @@ func (s *Service) PayOrder(ctx context.Context, orderUUID uuid.UUID, paymentMeth
 	}
 
 	order.TransactionUUID = &parsedTransactionUUID
-	paymentMethodDto := converter.PaymentMethodToOrderDto(paymentMethod)
-	order.PaymentMethod = &paymentMethodDto
-	order.Status = orderv1.OrderStatusPAID
+	order.PaymentMethod = &paymentMethod
+	order.Status = model.StatusPaid
 
-	// Сохраняем изменения
 	if err := s.orderRepository.UpdateOrder(ctx, order); err != nil {
 		return nil, fmt.Errorf("failed to update order: %w", err)
 	}

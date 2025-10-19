@@ -2,8 +2,27 @@ package model
 
 import (
 	"github.com/google/uuid"
+)
 
-	orderv1 "github.com/radiophysiker/microservices-homework/shared/pkg/openapi/order/v1"
+// PaymentMethod представляет способ оплаты
+type PaymentMethod int
+
+const (
+	PaymentMethodUnspecified PaymentMethod = iota
+	PaymentMethodCard
+	PaymentMethodSBP
+	PaymentMethodCreditCard
+	PaymentMethodInvestorMoney
+)
+
+// Status представляет статус заказа
+type Status int
+
+const (
+	StatusUnspecified Status = iota
+	StatusPendingPayment
+	StatusPaid
+	StatusCancelled
 )
 
 // Order представляет заказ в сервисном слое
@@ -13,6 +32,6 @@ type Order struct {
 	PartUUIDs       []uuid.UUID
 	TotalPrice      float64
 	TransactionUUID *uuid.UUID
-	PaymentMethod   *orderv1.OrderDtoPaymentMethod
-	Status          orderv1.OrderStatus
+	PaymentMethod   *PaymentMethod
+	Status          Status
 }

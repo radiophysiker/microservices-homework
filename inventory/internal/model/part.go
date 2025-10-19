@@ -2,8 +2,17 @@ package model
 
 import (
 	"time"
+)
 
-	pb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/inventory/v1"
+// Category представляет категорию детали
+type Category int32
+
+const (
+	CategoryUnspecified Category = iota
+	CategoryEngine
+	CategoryFuel
+	CategoryPorthole
+	CategoryWing
 )
 
 // Part представляет сущность детали в сервисном слое
@@ -13,7 +22,7 @@ type Part struct {
 	Description   string
 	Price         float64
 	StockQuantity int32
-	Category      pb.Category
+	Category      Category
 	Dimensions    *Dimensions
 	Manufacturer  *Manufacturer
 	Tags          []string
@@ -40,7 +49,7 @@ type Manufacturer struct {
 type Filter struct {
 	UUIDs                 []string
 	Names                 []string
-	Categories            []pb.Category
+	Categories            []Category
 	ManufacturerCountries []string
 	Tags                  []string
 }

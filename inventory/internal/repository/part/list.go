@@ -6,7 +6,6 @@ import (
 	"github.com/radiophysiker/microservices-homework/inventory/internal/model"
 	"github.com/radiophysiker/microservices-homework/inventory/internal/repository/converter"
 	repoModel "github.com/radiophysiker/microservices-homework/inventory/internal/repository/model"
-	pb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/inventory/v1"
 )
 
 // ListParts возвращает список деталей с возможностью фильтрации
@@ -36,7 +35,12 @@ func (r *Repository) ListParts(_ context.Context, filter *model.Filter) ([]*mode
 	}
 
 	if len(filter.Categories) > 0 {
-		filteredParts = filterPartsByCategories(filteredParts, filter.Categories)
+		repoCategories := make([]repoModel.Category, 0, len(filter.Categories))
+		for _, cat := range filter.Categories {
+			repoCategories = append(repoCategories, converter.ToRepoCategory(cat))
+		}
+
+		filteredParts = filterPartsByCategories(filteredParts, repoCategories)
 	}
 
 	if len(filter.ManufacturerCountries) > 0 {
@@ -90,7 +94,7 @@ func filterPartsByNames(parts []*repoModel.Part, names []string) []*repoModel.Pa
 }
 
 // filterPartsByCategories фильтрует детали по категориям
-func filterPartsByCategories(parts []*repoModel.Part, categories []pb.Category) []*repoModel.Part {
+func filterPartsByCategories(parts []*repoModel.Part, categories []repoModel.Category) []*repoModel.Part {
 	filtered := make([]*repoModel.Part, 0, len(categories))
 
 	for _, part := range parts {

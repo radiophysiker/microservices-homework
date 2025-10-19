@@ -5,7 +5,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/radiophysiker/microservices-homework/order/internal/model"
-	orderv1 "github.com/radiophysiker/microservices-homework/shared/pkg/openapi/order/v1"
 )
 
 // TestUpdateOrder проверяет обновление заказа
@@ -18,9 +17,9 @@ func (s *RepositoryTestSuite) TestUpdateOrder() {
 	}{
 		{
 			name:  "success",
-			order: s.createTestOrder(s.testOrderUUID, 250.00, orderv1.OrderStatusPAID),
+			order: s.createTestOrder(s.testOrderUUID, 250.00, model.StatusPaid),
 			setupFunc: func() {
-				existingOrder := s.createTestOrder(s.testOrderUUID, 100.00, orderv1.OrderStatusPENDINGPAYMENT)
+				existingOrder := s.createTestOrder(s.testOrderUUID, 100.00, model.StatusPendingPayment)
 				err := s.repo.CreateOrder(s.ctx, existingOrder)
 				require.NoError(s.T(), err)
 			},
@@ -28,9 +27,9 @@ func (s *RepositoryTestSuite) TestUpdateOrder() {
 		},
 		{
 			name:  "success_change_status",
-			order: s.createTestOrder(s.testOrderUUID, 100.00, orderv1.OrderStatusCANCELLED),
+			order: s.createTestOrder(s.testOrderUUID, 100.00, model.StatusCancelled),
 			setupFunc: func() {
-				existingOrder := s.createTestOrder(s.testOrderUUID, 100.00, orderv1.OrderStatusPENDINGPAYMENT)
+				existingOrder := s.createTestOrder(s.testOrderUUID, 100.00, model.StatusPendingPayment)
 				err := s.repo.CreateOrder(s.ctx, existingOrder)
 				require.NoError(s.T(), err)
 			},
@@ -46,10 +45,10 @@ func (s *RepositoryTestSuite) TestUpdateOrder() {
 					uuid.MustParse("550e8400-e29b-41d4-a716-446655440006"),
 				},
 				500.00,
-				orderv1.OrderStatusPENDINGPAYMENT,
+				model.StatusPendingPayment,
 			),
 			setupFunc: func() {
-				existingOrder := s.createTestOrder(s.testOrderUUID, 100.00, orderv1.OrderStatusPENDINGPAYMENT)
+				existingOrder := s.createTestOrder(s.testOrderUUID, 100.00, model.StatusPendingPayment)
 				err := s.repo.CreateOrder(s.ctx, existingOrder)
 				require.NoError(s.T(), err)
 			},
@@ -60,12 +59,12 @@ func (s *RepositoryTestSuite) TestUpdateOrder() {
 			order: s.createTestOrderWithPayment(
 				s.testOrderUUID,
 				100.00,
-				orderv1.OrderStatusPAID,
+				model.StatusPaid,
 				ptrUUID(uuid.MustParse("550e8400-e29b-41d4-a716-446655440008")),
-				ptrPaymentMethod(orderv1.OrderDtoPaymentMethodCARD),
+				ptrPaymentMethod(model.PaymentMethodCard),
 			),
 			setupFunc: func() {
-				existingOrder := s.createTestOrder(s.testOrderUUID, 100.00, orderv1.OrderStatusPENDINGPAYMENT)
+				existingOrder := s.createTestOrder(s.testOrderUUID, 100.00, model.StatusPendingPayment)
 				err := s.repo.CreateOrder(s.ctx, existingOrder)
 				require.NoError(s.T(), err)
 			},
@@ -73,7 +72,7 @@ func (s *RepositoryTestSuite) TestUpdateOrder() {
 		},
 		{
 			name:      "not_found",
-			order:     s.createTestOrder(uuid.MustParse("550e8400-e29b-41d4-a716-999999999999"), 100.00, orderv1.OrderStatusPENDINGPAYMENT),
+			order:     s.createTestOrder(uuid.MustParse("550e8400-e29b-41d4-a716-999999999999"), 100.00, model.StatusPendingPayment),
 			setupFunc: nil,
 			errType:   model.ErrOrderNotFound,
 		},

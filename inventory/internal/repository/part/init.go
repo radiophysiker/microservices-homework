@@ -4,7 +4,6 @@ import (
 	"time"
 
 	repoModel "github.com/radiophysiker/microservices-homework/inventory/internal/repository/model"
-	pb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/inventory/v1"
 )
 
 var (
@@ -18,7 +17,7 @@ var (
 			Description:   "Мощный ракетный двигатель для основной тяги",
 			Price:         50000.00,
 			StockQuantity: 10,
-			Category:      pb.Category_CATEGORY_ENGINE,
+			Category:      repoModel.CategoryEngine,
 			Dimensions: &repoModel.Dimensions{
 				Length: 300.0,
 				Width:  150.0,
@@ -40,7 +39,7 @@ var (
 			Description:   "Герметичный топливный бак для ракетного топлива",
 			Price:         15000.00,
 			StockQuantity: 25,
-			Category:      pb.Category_CATEGORY_FUEL,
+			Category:      repoModel.CategoryFuel,
 			Dimensions: &repoModel.Dimensions{
 				Length: 400.0,
 				Width:  200.0,
@@ -62,7 +61,7 @@ var (
 			Description:   "Прочный иллюминатор из закаленного стекла",
 			Price:         3000.00,
 			StockQuantity: 50,
-			Category:      pb.Category_CATEGORY_PORTHOLE,
+			Category:      repoModel.CategoryPorthole,
 			Dimensions: &repoModel.Dimensions{
 				Length: 50.0,
 				Width:  50.0,
@@ -84,7 +83,7 @@ var (
 			Description:   "Аэродинамическое крыло для стабилизации полета",
 			Price:         8000.00,
 			StockQuantity: 20,
-			Category:      pb.Category_CATEGORY_WING,
+			Category:      repoModel.CategoryWing,
 			Dimensions: &repoModel.Dimensions{
 				Length: 500.0,
 				Width:  100.0,

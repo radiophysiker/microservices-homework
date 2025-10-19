@@ -8,7 +8,6 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/radiophysiker/microservices-homework/order/internal/model"
-	orderv1 "github.com/radiophysiker/microservices-homework/shared/pkg/openapi/order/v1"
 )
 
 // RepositoryTestSuite содержит общее окружение для всех тестов репозитория
@@ -33,7 +32,7 @@ func (s *RepositoryTestSuite) SetupTest() {
 }
 
 // createTestOrder создает тестовый заказ с заданными параметрами
-func (s *RepositoryTestSuite) createTestOrder(orderUUID uuid.UUID, totalPrice float64, status orderv1.OrderStatus) *model.Order {
+func (s *RepositoryTestSuite) createTestOrder(orderUUID uuid.UUID, totalPrice float64, status model.Status) *model.Order {
 	return &model.Order{
 		OrderUUID:  orderUUID,
 		UserUUID:   s.testUserUUID,
@@ -44,7 +43,7 @@ func (s *RepositoryTestSuite) createTestOrder(orderUUID uuid.UUID, totalPrice fl
 }
 
 // createTestOrderWithParts создает тестовый заказ с множественными частями
-func (s *RepositoryTestSuite) createTestOrderWithParts(orderUUID uuid.UUID, partUUIDs []uuid.UUID, totalPrice float64, status orderv1.OrderStatus) *model.Order {
+func (s *RepositoryTestSuite) createTestOrderWithParts(orderUUID uuid.UUID, partUUIDs []uuid.UUID, totalPrice float64, status model.Status) *model.Order {
 	return &model.Order{
 		OrderUUID:  orderUUID,
 		UserUUID:   s.testUserUUID,
@@ -55,7 +54,7 @@ func (s *RepositoryTestSuite) createTestOrderWithParts(orderUUID uuid.UUID, part
 }
 
 // createTestOrderWithPayment создает тестовый заказ с информацией о платеже
-func (s *RepositoryTestSuite) createTestOrderWithPayment(orderUUID uuid.UUID, totalPrice float64, status orderv1.OrderStatus, transactionUUID *uuid.UUID, paymentMethod *orderv1.OrderDtoPaymentMethod) *model.Order {
+func (s *RepositoryTestSuite) createTestOrderWithPayment(orderUUID uuid.UUID, totalPrice float64, status model.Status, transactionUUID *uuid.UUID, paymentMethod *model.PaymentMethod) *model.Order {
 	return &model.Order{
 		OrderUUID:       orderUUID,
 		UserUUID:        s.testUserUUID,
@@ -73,7 +72,7 @@ func ptrUUID(u uuid.UUID) *uuid.UUID {
 }
 
 // ptrPaymentMethod - хелпер для создания указателя на PaymentMethod
-func ptrPaymentMethod(pm orderv1.OrderDtoPaymentMethod) *orderv1.OrderDtoPaymentMethod {
+func ptrPaymentMethod(pm model.PaymentMethod) *model.PaymentMethod {
 	return &pm
 }
 

@@ -37,8 +37,8 @@ func (s *ServiceSuite) TestPayOrder() {
 		{name: "success_credit_card", userUUID: "user-111", orderUUID: "order-222", method: pb.PaymentMethod_PAYMENT_METHOD_CREDIT_CARD},
 		{name: "success_investor_money", userUUID: "user-333", orderUUID: "order-444", method: pb.PaymentMethod_PAYMENT_METHOD_INVESTOR_MONEY},
 
-		{name: "invalid_user_uuid_empty", userUUID: "", orderUUID: "order-456", method: pb.PaymentMethod_PAYMENT_METHOD_CARD, wantErr: model.ErrInvalidPaymentRequest},
-		{name: "invalid_order_uuid_empty", userUUID: "user-123", orderUUID: "", method: pb.PaymentMethod_PAYMENT_METHOD_CARD, wantErr: model.ErrInvalidPaymentRequest},
+		{name: "invalid_user_uuid_empty", userUUID: "", orderUUID: "order-456", method: pb.PaymentMethod_PAYMENT_METHOD_CARD, wantErr: model.ErrInvalidPaymentRequest, wantErrSubstr: "user_uuid is empty"},
+		{name: "invalid_order_uuid_empty", userUUID: "user-123", orderUUID: "", method: pb.PaymentMethod_PAYMENT_METHOD_CARD, wantErr: model.ErrInvalidPaymentRequest, wantErrSubstr: "order_uuid is empty"},
 		{name: "invalid_payment_method_unspecified", userUUID: "user-123", orderUUID: "order-456", method: pb.PaymentMethod_PAYMENT_METHOD_UNSPECIFIED, wantErr: model.ErrInvalidPaymentRequest, wantErrSubstr: "unspecified payment method"},
 	}
 

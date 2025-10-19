@@ -13,8 +13,12 @@ import (
 
 // PayOrder проводит оплату заказа
 func (s *Service) PayOrder(_ context.Context, userUUID, orderUUID string, paymentMethod pb.PaymentMethod) (string, error) {
-	if userUUID == "" || orderUUID == "" {
-		return "", model.ErrInvalidPaymentRequest
+	if userUUID == "" {
+		return "", fmt.Errorf("%w: user_uuid is empty", model.ErrInvalidPaymentRequest)
+	}
+
+	if orderUUID == "" {
+		return "", fmt.Errorf("%w: order_uuid is empty", model.ErrInvalidPaymentRequest)
 	}
 
 	if paymentMethod == pb.PaymentMethod_PAYMENT_METHOD_UNSPECIFIED {

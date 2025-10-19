@@ -17,7 +17,7 @@ func ToServicePart(repoPart *repoModel.Part) *model.Part {
 		Description:   repoPart.Description,
 		Price:         repoPart.Price,
 		StockQuantity: repoPart.StockQuantity,
-		Category:      repoPart.Category,
+		Category:      toServiceCategory(repoPart.Category),
 		Dimensions:    toServiceDimensions(repoPart.Dimensions),
 		Manufacturer:  toServiceManufacturer(repoPart.Manufacturer),
 		Tags:          repoPart.Tags,
@@ -52,12 +52,43 @@ func ToRepoPart(servicePart *model.Part) *repoModel.Part {
 		Description:   servicePart.Description,
 		Price:         servicePart.Price,
 		StockQuantity: servicePart.StockQuantity,
-		Category:      servicePart.Category,
+		Category:      ToRepoCategory(servicePart.Category),
 		Dimensions:    toRepoDimensions(servicePart.Dimensions),
 		Manufacturer:  toRepoManufacturer(servicePart.Manufacturer),
 		Tags:          servicePart.Tags,
 		CreatedAt:     servicePart.CreatedAt,
 		UpdatedAt:     servicePart.UpdatedAt,
+	}
+}
+
+func toServiceCategory(c repoModel.Category) model.Category {
+	switch c {
+	case repoModel.CategoryEngine:
+		return model.CategoryEngine
+	case repoModel.CategoryFuel:
+		return model.CategoryFuel
+	case repoModel.CategoryPorthole:
+		return model.CategoryPorthole
+	case repoModel.CategoryWing:
+		return model.CategoryWing
+	default:
+		return model.CategoryUnspecified
+	}
+}
+
+// ToRepoCategory конвертирует категорию из service модели в repository модель
+func ToRepoCategory(c model.Category) repoModel.Category {
+	switch c {
+	case model.CategoryEngine:
+		return repoModel.CategoryEngine
+	case model.CategoryFuel:
+		return repoModel.CategoryFuel
+	case model.CategoryPorthole:
+		return repoModel.CategoryPorthole
+	case model.CategoryWing:
+		return repoModel.CategoryWing
+	default:
+		return repoModel.CategoryUnspecified
 	}
 }
 

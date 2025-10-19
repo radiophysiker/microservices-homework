@@ -10,7 +10,6 @@ import (
 
 	"github.com/radiophysiker/microservices-homework/order/internal/model"
 	repomocks "github.com/radiophysiker/microservices-homework/order/internal/repository/mocks"
-	orderv1 "github.com/radiophysiker/microservices-homework/shared/pkg/openapi/order/v1"
 )
 
 func (s *ServiceTestSuite) TestCancelOrder() {
@@ -28,13 +27,13 @@ func (s *ServiceTestSuite) TestCancelOrder() {
 				order := &model.Order{
 					OrderUUID: uuid.New(),
 					UserUUID:  uuid.New(),
-					Status:    orderv1.OrderStatusPENDINGPAYMENT,
+					Status:    model.StatusPendingPayment,
 				}
 				repo.EXPECT().GetOrder(s.ctx, mock.AnythingOfType("string")).Return(order, nil).Once()
 				repo.EXPECT().UpdateOrder(s.ctx, mock.AnythingOfType("*model.Order")).Return(nil).Once()
 			},
 			wantOrder: &model.Order{
-				Status: orderv1.OrderStatusCANCELLED,
+				Status: model.StatusCancelled,
 			},
 		},
 		{
@@ -44,7 +43,7 @@ func (s *ServiceTestSuite) TestCancelOrder() {
 				order := &model.Order{
 					OrderUUID: uuid.New(),
 					UserUUID:  uuid.New(),
-					Status:    orderv1.OrderStatusPAID,
+					Status:    model.StatusPaid,
 				}
 				repo.EXPECT().GetOrder(s.ctx, mock.AnythingOfType("string")).Return(order, nil).Once()
 			},
@@ -74,7 +73,7 @@ func (s *ServiceTestSuite) TestCancelOrder() {
 				order := &model.Order{
 					OrderUUID: uuid.New(),
 					UserUUID:  uuid.New(),
-					Status:    orderv1.OrderStatusPENDINGPAYMENT,
+					Status:    model.StatusPendingPayment,
 				}
 				repo.EXPECT().GetOrder(s.ctx, mock.AnythingOfType("string")).Return(order, nil).Once()
 				repo.EXPECT().UpdateOrder(s.ctx, mock.AnythingOfType("*model.Order")).Return(errors.New("database error")).Once()

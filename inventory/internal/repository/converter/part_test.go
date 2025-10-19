@@ -8,7 +8,6 @@ import (
 
 	"github.com/radiophysiker/microservices-homework/inventory/internal/model"
 	repoModel "github.com/radiophysiker/microservices-homework/inventory/internal/repository/model"
-	pb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/inventory/v1"
 )
 
 // ConverterTestSuite тестовый набор для конвертера репозитория
@@ -43,7 +42,7 @@ func (s *ConverterTestSuite) TestToServicePart() {
 				Description:   "Test Description",
 				Price:         100.50,
 				StockQuantity: 10,
-				Category:      pb.Category_CATEGORY_ENGINE,
+				Category:      repoModel.CategoryEngine,
 				Dimensions: &repoModel.Dimensions{
 					Length: 100.0,
 					Width:  50.0,
@@ -65,7 +64,7 @@ func (s *ConverterTestSuite) TestToServicePart() {
 				Description:   "Test Description",
 				Price:         100.50,
 				StockQuantity: 10,
-				Category:      pb.Category_CATEGORY_ENGINE,
+				Category:      model.CategoryEngine,
 				Dimensions: &model.Dimensions{
 					Length: 100.0,
 					Width:  50.0,
@@ -90,7 +89,7 @@ func (s *ConverterTestSuite) TestToServicePart() {
 				Description:   "Simple Description",
 				Price:         50.0,
 				StockQuantity: 5,
-				Category:      pb.Category_CATEGORY_WING,
+				Category:      repoModel.CategoryWing,
 				CreatedAt:     now,
 				UpdatedAt:     now,
 			},
@@ -100,7 +99,7 @@ func (s *ConverterTestSuite) TestToServicePart() {
 				Description:   "Simple Description",
 				Price:         50.0,
 				StockQuantity: 5,
-				Category:      pb.Category_CATEGORY_WING,
+				Category:      model.CategoryWing,
 				CreatedAt:     now,
 				UpdatedAt:     now,
 			},
@@ -143,7 +142,7 @@ func (s *ConverterTestSuite) TestToServiceParts() {
 					Description:   "Description 1",
 					Price:         100.0,
 					StockQuantity: 10,
-					Category:      pb.Category_CATEGORY_ENGINE,
+					Category:      repoModel.CategoryEngine,
 					CreatedAt:     now,
 					UpdatedAt:     now,
 				},
@@ -153,7 +152,7 @@ func (s *ConverterTestSuite) TestToServiceParts() {
 					Description:   "Description 2",
 					Price:         200.0,
 					StockQuantity: 20,
-					Category:      pb.Category_CATEGORY_FUEL,
+					Category:      repoModel.CategoryFuel,
 					CreatedAt:     now,
 					UpdatedAt:     now,
 				},
@@ -165,7 +164,7 @@ func (s *ConverterTestSuite) TestToServiceParts() {
 					Description:   "Description 1",
 					Price:         100.0,
 					StockQuantity: 10,
-					Category:      pb.Category_CATEGORY_ENGINE,
+					Category:      model.CategoryEngine,
 					CreatedAt:     now,
 					UpdatedAt:     now,
 				},
@@ -175,7 +174,7 @@ func (s *ConverterTestSuite) TestToServiceParts() {
 					Description:   "Description 2",
 					Price:         200.0,
 					StockQuantity: 20,
-					Category:      pb.Category_CATEGORY_FUEL,
+					Category:      model.CategoryFuel,
 					CreatedAt:     now,
 					UpdatedAt:     now,
 				},
@@ -213,7 +212,7 @@ func (s *ConverterTestSuite) TestToRepoPart() {
 				Description:   "Test Description",
 				Price:         100.50,
 				StockQuantity: 10,
-				Category:      pb.Category_CATEGORY_ENGINE,
+				Category:      model.CategoryEngine,
 				Dimensions: &model.Dimensions{
 					Length: 100.0,
 					Width:  50.0,
@@ -235,7 +234,7 @@ func (s *ConverterTestSuite) TestToRepoPart() {
 				Description:   "Test Description",
 				Price:         100.50,
 				StockQuantity: 10,
-				Category:      pb.Category_CATEGORY_ENGINE,
+				Category:      repoModel.CategoryEngine,
 				Dimensions: &repoModel.Dimensions{
 					Length: 100.0,
 					Width:  50.0,
@@ -260,7 +259,7 @@ func (s *ConverterTestSuite) TestToRepoPart() {
 				Description:   "Simple Description",
 				Price:         50.0,
 				StockQuantity: 5,
-				Category:      pb.Category_CATEGORY_WING,
+				Category:      model.CategoryWing,
 				CreatedAt:     now,
 				UpdatedAt:     now,
 			},
@@ -270,7 +269,7 @@ func (s *ConverterTestSuite) TestToRepoPart() {
 				Description:   "Simple Description",
 				Price:         50.0,
 				StockQuantity: 5,
-				Category:      pb.Category_CATEGORY_WING,
+				Category:      repoModel.CategoryWing,
 				CreatedAt:     now,
 				UpdatedAt:     now,
 			},

@@ -26,5 +26,5 @@ func (a *API) GetOrder(ctx context.Context, params orderv1.GetOrderParams) (orde
 		}, nil
 	}
 
-	return converter.ToOrderDto(order), nil
+	return converter.ToOpenAPIOrder(order), nil
 }

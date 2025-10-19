@@ -10,7 +10,6 @@ import (
 
 	"github.com/radiophysiker/microservices-homework/order/internal/model"
 	repomocks "github.com/radiophysiker/microservices-homework/order/internal/repository/mocks"
-	orderv1 "github.com/radiophysiker/microservices-homework/shared/pkg/openapi/order/v1"
 )
 
 func (s *ServiceTestSuite) TestGetOrder() {
@@ -28,12 +27,12 @@ func (s *ServiceTestSuite) TestGetOrder() {
 				want := &model.Order{
 					OrderUUID: uuid.New(),
 					UserUUID:  uuid.New(),
-					Status:    orderv1.OrderStatusPENDINGPAYMENT,
+					Status:    model.StatusPendingPayment,
 				}
 				repo.EXPECT().GetOrder(s.ctx, mock.AnythingOfType("string")).Return(want, nil).Once()
 			},
 			wantOrder: &model.Order{
-				Status: orderv1.OrderStatusPENDINGPAYMENT,
+				Status: model.StatusPendingPayment,
 			},
 		},
 		{

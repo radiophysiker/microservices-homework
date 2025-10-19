@@ -11,7 +11,6 @@ import (
 	clientmocks "github.com/radiophysiker/microservices-homework/order/internal/client/grpc/mocks"
 	"github.com/radiophysiker/microservices-homework/order/internal/model"
 	repomocks "github.com/radiophysiker/microservices-homework/order/internal/repository/mocks"
-	orderv1 "github.com/radiophysiker/microservices-homework/shared/pkg/openapi/order/v1"
 )
 
 func (s *ServiceTestSuite) TestCreateOrder() {
@@ -33,7 +32,7 @@ func (s *ServiceTestSuite) TestCreateOrder() {
 				repo.EXPECT().CreateOrder(s.ctx, mock.AnythingOfType("*model.Order")).Return(nil).Once()
 			},
 			wantOrder: &model.Order{
-				Status: orderv1.OrderStatusPENDINGPAYMENT,
+				Status: model.StatusPendingPayment,
 			},
 		},
 		{

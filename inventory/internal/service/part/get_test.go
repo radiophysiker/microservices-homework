@@ -20,21 +20,21 @@ func (s *ServiceTestSuite) TestGetPart() {
 	}{
 		{
 			name: "success",
-			uuid: "p1",
+			uuid: "123e4567-e89b-12d3-a456-426614174000",
 			setupMock: func() {
 				want := &model.Part{
-					UUID:        "p1",
+					UUID:        "123e4567-e89b-12d3-a456-426614174000",
 					Name:        "Bolt",
 					Description: "Description",
 					Price:       10,
 				}
 				s.repo.EXPECT().
-					GetPart(s.ctx, "p1").
+					GetPart(s.ctx, "123e4567-e89b-12d3-a456-426614174000").
 					Return(want, nil).
 					Once()
 			},
 			wantPart: &model.Part{
-				UUID:  "p1",
+				UUID:  "123e4567-e89b-12d3-a456-426614174000",
 				Name:  "Bolt",
 				Price: 10,
 			},
@@ -50,10 +50,10 @@ func (s *ServiceTestSuite) TestGetPart() {
 		},
 		{
 			name: "part_not_found",
-			uuid: "nonexistent",
+			uuid: "223e4567-e89b-12d3-a456-426614174001",
 			setupMock: func() {
 				s.repo.EXPECT().
-					GetPart(s.ctx, "nonexistent").
+					GetPart(s.ctx, "223e4567-e89b-12d3-a456-426614174001").
 					Return(nil, model.ErrPartNotFound).
 					Once()
 			},
@@ -66,11 +66,11 @@ func (s *ServiceTestSuite) TestGetPart() {
 		},
 		{
 			name: "repository_error",
-			uuid: "p3",
+			uuid: "323e4567-e89b-12d3-a456-426614174002",
 			setupMock: func() {
 				repoErr := errors.New("database connection failed")
 				s.repo.EXPECT().
-					GetPart(s.ctx, "p3").
+					GetPart(s.ctx, "323e4567-e89b-12d3-a456-426614174002").
 					Return(nil, repoErr).
 					Once()
 			},
@@ -85,15 +85,9 @@ func (s *ServiceTestSuite) TestGetPart() {
 			name: "invalid_uuid_with_special_chars",
 			uuid: "p@#$%",
 			setupMock: func() {
-				s.repo.EXPECT().
-					GetPart(s.ctx, "p@#$%").
-					Return(nil, model.ErrPartNotFound).
-					Maybe()
 			},
 			wantPart: nil,
-			checkErr: func(err error) {
-				require.Error(s.T(), err)
-			},
+			wantErr:  model.ErrInvalidUUID,
 		},
 	}
 

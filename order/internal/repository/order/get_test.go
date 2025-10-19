@@ -5,7 +5,6 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/radiophysiker/microservices-homework/order/internal/model"
-	orderv1 "github.com/radiophysiker/microservices-homework/shared/pkg/openapi/order/v1"
 )
 
 func (s *RepositoryTestSuite) TestGetOrder() {
@@ -14,7 +13,7 @@ func (s *RepositoryTestSuite) TestGetOrder() {
 		UserUUID:   s.testUserUUID,
 		PartUUIDs:  []uuid.UUID{s.testPartUUID},
 		TotalPrice: 100.50,
-		Status:     orderv1.OrderStatusPENDINGPAYMENT,
+		Status:     model.StatusPendingPayment,
 	}
 
 	err := s.repo.CreateOrder(s.ctx, existingOrder)
