@@ -4,27 +4,33 @@ import (
 	"context"
 	"errors"
 
+	"github.com/google/uuid"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
+
 	"github.com/radiophysiker/microservices-homework/order/internal/converter"
 	"github.com/radiophysiker/microservices-homework/order/internal/model"
-	orderv1 "github.com/radiophysiker/microservices-homework/shared/pkg/openapi/order/v1"
+	orderpb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/order/v1"
 )
 
 // GetOrder возвращает заказ по UUID
-func (a *API) GetOrder(ctx context.Context, params orderv1.GetOrderParams) (orderv1.GetOrderRes, error) {
-	order, err := a.orderService.GetOrder(ctx, params.OrderUUID)
+func (a *API) GetOrder(ctx context.Context, req *orderpb.GetOrderRequest) (*orderpb.GetOrderResponse, error) {
+	orderUUID, err := uuid.Parse(req.GetOrderUuid())
 	if err != nil {
-		if errors.Is(err, model.ErrOrderNotFound) {
-			return &orderv1.NotFoundError{
-				Error:   orderv1.NotFoundErrorErrorNotFound,
-				Message: "order not found",
-			}, nil
-		}
-
-		return &orderv1.InternalServerError{
-			Error:   orderv1.InternalServerErrorErrorInternalServerError,
-			Message: "failed to get order",
-		}, nil
+		return nil, status.Errorf(codes.InvalidArgument, "invalid order UUID: %v", err)
 	}
 
-	return converter.ToOpenAPIOrder(order), nil
+	order, err := a.orderService.GetOrder(ctx, orderUUID)
+	if err != nil {
+		switch {
+		case errors.Is(err, model.ErrInvalidOrderData):
+			return nil, status.Errorf(codes.InvalidArgument, "invalid order data: %v", err)
+		case errors.Is(err, model.ErrOrderNotFound):
+			return nil, status.Errorf(codes.NotFound, "order not found: %v", err)
+		default:
+			return nil, status.Errorf(codes.Internal, "failed to get order: %v", err)
+		}
+	}
+
+	return converter.ToProtoOrder(order), nil
 }

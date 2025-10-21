@@ -80,9 +80,9 @@ func (PaymentMethod) EnumDescriptor() ([]byte, []int) {
 // Запрос для оплаты заказа
 type PayOrderRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	OrderUuid     string                 `protobuf:"bytes,1,opt,name=order_uuid,json=orderUuid,proto3" json:"order_uuid,omitempty"`
-	UserUuid      string                 `protobuf:"bytes,2,opt,name=user_uuid,json=userUuid,proto3" json:"user_uuid,omitempty"`
-	PaymentMethod PaymentMethod          `protobuf:"varint,3,opt,name=payment_method,json=paymentMethod,proto3,enum=payment.v1.PaymentMethod" json:"payment_method,omitempty"`
+	OrderUuid     string                 `protobuf:"bytes,1,opt,name=order_uuid,proto3" json:"order_uuid,omitempty"`
+	UserUuid      string                 `protobuf:"bytes,2,opt,name=user_uuid,proto3" json:"user_uuid,omitempty"`
+	PaymentMethod PaymentMethod          `protobuf:"varint,3,opt,name=payment_method,proto3,enum=payment.v1.PaymentMethod" json:"payment_method,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -141,7 +141,7 @@ func (x *PayOrderRequest) GetPaymentMethod() PaymentMethod {
 // Ответ оплаты заказа с id возвращенной транзакции
 type PayOrderResponse struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
-	TransactionUuid string                 `protobuf:"bytes,1,opt,name=transaction_uuid,json=transactionUuid,proto3" json:"transaction_uuid,omitempty"`
+	TransactionUuid string                 `protobuf:"bytes,1,opt,name=transaction_uuid,proto3" json:"transaction_uuid,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -188,14 +188,15 @@ var File_payment_v1_payment_proto protoreflect.FileDescriptor
 const file_payment_v1_payment_proto_rawDesc = "" +
 	"\n" +
 	"\x18payment/v1/payment.proto\x12\n" +
-	"payment.v1\"\x8f\x01\n" +
-	"\x0fPayOrderRequest\x12\x1d\n" +
+	"payment.v1\"\x92\x01\n" +
+	"\x0fPayOrderRequest\x12\x1e\n" +
 	"\n" +
-	"order_uuid\x18\x01 \x01(\tR\torderUuid\x12\x1b\n" +
-	"\tuser_uuid\x18\x02 \x01(\tR\buserUuid\x12@\n" +
-	"\x0epayment_method\x18\x03 \x01(\x0e2\x19.payment.v1.PaymentMethodR\rpaymentMethod\"=\n" +
-	"\x10PayOrderResponse\x12)\n" +
-	"\x10transaction_uuid\x18\x01 \x01(\tR\x0ftransactionUuid*\xa3\x01\n" +
+	"order_uuid\x18\x01 \x01(\tR\n" +
+	"order_uuid\x12\x1c\n" +
+	"\tuser_uuid\x18\x02 \x01(\tR\tuser_uuid\x12A\n" +
+	"\x0epayment_method\x18\x03 \x01(\x0e2\x19.payment.v1.PaymentMethodR\x0epayment_method\">\n" +
+	"\x10PayOrderResponse\x12*\n" +
+	"\x10transaction_uuid\x18\x01 \x01(\tR\x10transaction_uuid*\xa3\x01\n" +
 	"\rPaymentMethod\x12\x1e\n" +
 	"\x1aPAYMENT_METHOD_UNSPECIFIED\x10\x00\x12\x17\n" +
 	"\x13PAYMENT_METHOD_CARD\x10\x01\x12\x16\n" +

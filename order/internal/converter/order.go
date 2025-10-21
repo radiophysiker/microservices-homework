@@ -3,6 +3,7 @@ package converter
 import (
 	"github.com/radiophysiker/microservices-homework/order/internal/model"
 	orderv1 "github.com/radiophysiker/microservices-homework/shared/pkg/openapi/order/v1"
+	orderpb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/order/v1"
 	paymentpb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/payment/v1"
 )
 
@@ -111,5 +112,88 @@ func PaymentMethodToOpenAPI(pm orderv1.PaymentMethod) orderv1.OrderDtoPaymentMet
 		return orderv1.OrderDtoPaymentMethodINVESTORMONEY
 	default:
 		return orderv1.OrderDtoPaymentMethodUNKNOWN
+	}
+}
+
+// PaymentMethodFromProtobuf конвертирует protobuf PaymentMethod в model.PaymentMethod
+func PaymentMethodFromProtobuf(pm orderpb.PaymentMethod) model.PaymentMethod {
+	switch pm {
+	case orderpb.PaymentMethod_CARD:
+		return model.PaymentMethodCard
+	case orderpb.PaymentMethod_SBP:
+		return model.PaymentMethodSBP
+	case orderpb.PaymentMethod_CREDIT_CARD:
+		return model.PaymentMethodCreditCard
+	case orderpb.PaymentMethod_INVESTOR_MONEY:
+		return model.PaymentMethodInvestorMoney
+	default:
+		return model.PaymentMethodUnspecified
+	}
+}
+
+// PaymentMethodToOrderProtobuf конвертирует model.PaymentMethod в orderpb.PaymentMethod
+func PaymentMethodToOrderProtobuf(pm model.PaymentMethod) orderpb.PaymentMethod {
+	switch pm {
+	case model.PaymentMethodCard:
+		return orderpb.PaymentMethod_CARD
+	case model.PaymentMethodSBP:
+		return orderpb.PaymentMethod_SBP
+	case model.PaymentMethodCreditCard:
+		return orderpb.PaymentMethod_CREDIT_CARD
+	case model.PaymentMethodInvestorMoney:
+		return orderpb.PaymentMethod_INVESTOR_MONEY
+	default:
+		return orderpb.PaymentMethod_PAYMENT_METHOD_UNSPECIFIED
+	}
+}
+
+// StatusToProtobuf конвертирует model.Status в protobuf OrderStatus
+func StatusToProtobuf(s model.Status) orderpb.OrderStatus {
+	switch s {
+	case model.StatusPendingPayment:
+		return orderpb.OrderStatus_ORDER_STATUS_PENDING_PAYMENT
+	case model.StatusPaid:
+		return orderpb.OrderStatus_ORDER_STATUS_PAID
+	case model.StatusCancelled:
+		return orderpb.OrderStatus_ORDER_STATUS_CANCELLED
+	default:
+		return orderpb.OrderStatus_ORDER_STATUS_UNSPECIFIED
+	}
+}
+
+// ToProtoOrder конвертирует доменную модель в protobuf GetOrderResponse
+func ToProtoOrder(serviceOrder *model.Order) *orderpb.GetOrderResponse {
+	if serviceOrder == nil {
+		return nil
+	}
+
+	var transactionUUID *string
+
+	if serviceOrder.TransactionUUID != nil {
+		transactionUUIDStr := serviceOrder.TransactionUUID.String()
+		transactionUUID = &transactionUUIDStr
+	}
+
+	var paymentMethod *orderpb.PaymentMethod
+
+	if serviceOrder.PaymentMethod != nil {
+		pm := PaymentMethodToOrderProtobuf(*serviceOrder.PaymentMethod)
+		paymentMethod = &pm
+	}
+
+	// Конвертируем part UUIDs в строки
+	partUUIDStrings := make([]string, len(serviceOrder.PartUUIDs))
+	for i, partUUID := range serviceOrder.PartUUIDs {
+		partUUIDStrings[i] = partUUID.String()
+	}
+
+	return &orderpb.GetOrderResponse{
+		OrderUuid:       serviceOrder.OrderUUID.String(),
+		UserUuid:        serviceOrder.UserUUID.String(),
+		PartUuids:       partUUIDStrings,
+		TotalPrice:      serviceOrder.TotalPrice,
+		TransactionUuid: transactionUUID,
+		PaymentMethod:   paymentMethod,
+		Status:          StatusToProtobuf(serviceOrder.Status),
 	}
 }

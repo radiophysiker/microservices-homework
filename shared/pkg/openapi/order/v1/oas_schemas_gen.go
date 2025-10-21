@@ -42,7 +42,10 @@ func (s *BadRequestError) SetMessage(val string) {
 	s.Message = val
 }
 
+func (*BadRequestError) cancelOrderRes() {}
 func (*BadRequestError) createOrderRes() {}
+func (*BadRequestError) getOrderRes()    {}
+func (*BadRequestError) payOrderRes()    {}
 
 // Merged schema.
 type BadRequestErrorError string

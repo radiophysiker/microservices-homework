@@ -18,8 +18,11 @@ func (s *Service) PayOrder(ctx context.Context, orderUUID uuid.UUID, paymentMeth
 		return nil, fmt.Errorf("failed to get order: %w", err)
 	}
 
-	// Проверяем, что заказ может быть оплачен
-	if order.Status != model.StatusPendingPayment {
+	if order.Status == model.StatusPaid {
+		return nil, model.ErrOrderCannotBePaid
+	}
+
+	if order.Status == model.StatusCancelled {
 		return nil, model.ErrOrderCannotBePaid
 	}
 

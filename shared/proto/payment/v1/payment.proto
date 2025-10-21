@@ -11,14 +11,14 @@ service PaymentService {
 
 // Запрос для оплаты заказа
 message PayOrderRequest {
-  string order_uuid = 1;
-  string user_uuid = 2;
-  PaymentMethod payment_method = 3;
+  string order_uuid = 1 [json_name = "order_uuid"];
+  string user_uuid = 2 [json_name = "user_uuid"];
+  PaymentMethod payment_method = 3 [json_name = "payment_method"];
 }
 
 // Ответ оплаты заказа с id возвращенной транзакции
 message PayOrderResponse {
-  string transaction_uuid = 1;
+  string transaction_uuid = 1 [json_name = "transaction_uuid"];
 }
 
 // Способы оплаты

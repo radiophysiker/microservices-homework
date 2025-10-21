@@ -5,41 +5,47 @@ post:
   tags:
     - Orders
   parameters:
-    - $ref: '../params/order_uuid.yaml'
+    - $ref: "../params/order_uuid.yaml"
   requestBody:
     required: true
     content:
       application/json:
         schema:
-          $ref: '../components/pay_order_request.yaml'
+          $ref: "../components/pay_order_request.yaml"
   responses:
-    '200':
+    "200":
       description: Заказ успешно оплачен
       content:
         application/json:
           schema:
-            $ref: '../components/pay_order_response.yaml'
-    '404':
+            $ref: "../components/pay_order_response.yaml"
+    "400":
+      description: Неверный запрос
+      content:
+        application/json:
+          schema:
+            $ref: "../components/errors/bad_request_error.yaml"
+    "404":
       description: Заказ не найден
       content:
         application/json:
           schema:
-            $ref: '../components/errors/not_found_error.yaml'
-    '409':
+            $ref: "../components/errors/not_found_error.yaml"
+    "409":
       description: Заказ уже оплачен
       content:
         application/json:
           schema:
-            $ref: '../components/errors/conflict_error.yaml'
-    '500':
+            $ref: "../components/errors/conflict_error.yaml"
+    "500":
       description: Внутренняя ошибка сервера
       content:
         application/json:
           schema:
-            $ref: '../components/errors/internal_server_error.yaml'
+            $ref: "../components/errors/internal_server_error.yaml"
     default:
       description: Общая ошибка
       content:
         application/json:
           schema:
-            $ref: '../components/errors/generic_error.yaml' 
+            $ref: "../components/errors/generic_error.yaml"

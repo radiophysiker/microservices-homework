@@ -9,6 +9,8 @@ vars:
   BUF_VERSION: "1.53.0"
   PROTOC_GEN_GO_VERSION: "v1.36.6"
   PROTOC_GEN_GO_GRPC_VERSION: "v1.5.1"
+  GRPC_GATEWAY_VERSION: "v2.27.3"
+  PROTOC_GEN_VALIDATE_VERSION: "v0.12.4"
   OGEN_VERSION: "v1.12.0"
   YQ_VERSION: "v4.45.2"
   GRPCURL_VERSION: "v1.9.3"
@@ -163,6 +165,18 @@ tasks:
         [ -f {{.PROTOC_GEN_GO_GRPC}} ] || {
           echo '📦 Installing protoc-gen-go-grpc...'
           GOBIN={{.BIN_DIR}} go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@{{.PROTOC_GEN_GO_GRPC_VERSION}}
+        }
+        [ -f {{.BIN_DIR}}/protoc-gen-grpc-gateway ] || {
+          echo '📦 Installing protoc-gen-grpc-gateway {{.GRPC_GATEWAY_VERSION}}...'
+          GOBIN={{.BIN_DIR}} go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@{{.GRPC_GATEWAY_VERSION}}
+        }
+        [ -f {{.BIN_DIR}}/protoc-gen-openapiv2 ] || {
+          echo '📦 Installing protoc-gen-openapiv2 {{.GRPC_GATEWAY_VERSION}}...'
+          GOBIN={{.BIN_DIR}} go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@{{.GRPC_GATEWAY_VERSION}}
+        }
+        [ -f {{.BIN_DIR}}/protoc-gen-validate ] || {
+          echo '📦 Installing protoc-gen-validate {{.PROTOC_GEN_VALIDATE_VERSION}}...'
+          GOBIN={{.BIN_DIR}} go install github.com/envoyproxy/protoc-gen-validate@{{.PROTOC_GEN_VALIDATE_VERSION}}
         }
 
   proto:gen:
