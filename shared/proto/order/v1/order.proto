@@ -1,0 +1,104 @@
+syntax = "proto3";
+
+package order.v1;
+
+option go_package = "github.com/radiophysiker/microservices-homework/shared/pkg/proto/order/v1";
+
+import "google/protobuf/empty.proto";
+import "google/api/annotations.proto";
+import "validate/validate.proto";
+
+// Сервис для управления заказами космических кораблей
+service OrderService {
+  // Создает новый заказ
+  rpc CreateOrder(CreateOrderRequest) returns (CreateOrderResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/orders"
+      body: "*"
+    };
+  }
+  
+  // Получает информацию о заказе по UUID
+  rpc GetOrder(GetOrderRequest) returns (GetOrderResponse) {
+    option (google.api.http) = {
+      get: "/api/v1/orders/{order_uuid}"
+    };
+  }
+  
+  // Проводит оплату заказа
+  rpc PayOrder(PayOrderRequest) returns (PayOrderResponse) {
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_uuid}/pay"
+      body: "*"
+    };
+  }
+  
+  // Отменяет заказ
+  rpc CancelOrder(CancelOrderRequest) returns (google.protobuf.Empty) {
+    option (google.api.http) = {
+      post: "/api/v1/orders/{order_uuid}/cancel"
+    };
+  }
+}
+
+// Запрос на создание заказа
+message CreateOrderRequest {
+  string user_uuid = 1 [(validate.rules).string.uuid = true, json_name = "user_uuid"];
+  repeated string part_uuids = 2 [(validate.rules).repeated.min_items = 1, json_name = "part_uuids"];
+}
+
+// Ответ создания заказа
+message CreateOrderResponse {
+  string order_uuid = 1 [json_name = "order_uuid"];
+  double total_price = 2 [json_name = "total_price"];
+}
+
+// Запрос на получение заказа
+message GetOrderRequest {
+  string order_uuid = 1 [(validate.rules).string.uuid = true, json_name = "order_uuid"];
+}
+
+// Ответ с информацией о заказе
+message GetOrderResponse {
+  string order_uuid = 1 [json_name = "order_uuid"];
+  string user_uuid = 2 [json_name = "user_uuid"];
+  repeated string part_uuids = 3 [json_name = "part_uuids"];
+  double total_price = 4 [json_name = "total_price"];
+  optional string transaction_uuid = 5 [json_name = "transaction_uuid"];
+  optional PaymentMethod payment_method = 6 [json_name = "payment_method"];
+  OrderStatus status = 7 [json_name = "status"];
+}
+
+// Запрос на оплату заказа
+message PayOrderRequest {
+  string order_uuid = 1 [(validate.rules).string.uuid = true, json_name = "order_uuid"];
+  PaymentMethod payment_method = 2 [(validate.rules).enum.defined_only = true, json_name = "payment_method"];
+}
+
+// Ответ оплаты заказа
+message PayOrderResponse {
+  string transaction_uuid = 1 [json_name = "transaction_uuid"];
+}
+
+// Запрос на отмену заказа
+message CancelOrderRequest {
+  string order_uuid = 1 [(validate.rules).string.uuid = true, json_name = "order_uuid"];
+}
+
+// Статусы заказа
+enum OrderStatus {
+  ORDER_STATUS_UNSPECIFIED = 0;
+  ORDER_STATUS_PENDING_PAYMENT = 1;
+  ORDER_STATUS_PAID = 2;
+  ORDER_STATUS_CANCELLED = 3;
+}
+
+// Способы оплаты
+enum PaymentMethod {
+  PAYMENT_METHOD_UNSPECIFIED = 0;
+  UNKNOWN = 1;
+  CARD = 2;
+  SBP = 3;
+  CREDIT_CARD = 4;
+  INVESTOR_MONEY = 5;
+}

@@ -1,0 +1,91 @@
+ syntax = "proto3";
+
+package inventory.v1;
+
+option go_package = "github.com/radiophysiker/microservices-homework/week1/shared/pkg/proto/inventory/v1";
+
+import "google/protobuf/timestamp.proto";
+
+// Сервис отвечающий за хранение и предоставление информации о деталях для сборки космических кораблей.
+service InventoryService {
+  rpc GetPart(GetPartRequest) returns (GetPartResponse);
+  rpc ListParts(ListPartsRequest) returns (ListPartsResponse);
+}
+
+// Запрос на получение конкретной детали по UUID
+message GetPartRequest {
+  string uuid = 1;
+}
+
+// Ответ с информацией о детали
+message GetPartResponse {
+  Part part = 1;
+}
+
+// Запрос на получение списка деталей с фильтрацией
+message ListPartsRequest {
+  PartsFilter filter = 1; // Фильтр по деталям (все поля опциональны)
+}
+
+// Ответ со списком деталей
+message ListPartsResponse {
+  repeated Part parts = 1; // Список найденных деталей
+}
+
+// Фильтр для поиска деталей
+message PartsFilter {
+  repeated string uuids = 1;
+  repeated string names = 2;
+  repeated Category categories = 3;
+  repeated string manufacturer_countries = 4;
+  repeated string tags = 5;
+}
+
+// Деталь космического корабля со всеми атрибутами
+message Part {
+  string uuid = 1;
+  string name = 2;
+  string description = 3;
+  double price = 4;
+  Category category = 6;
+  Dimensions dimensions = 7;
+  Manufacturer manufacturer = 8;
+  repeated string tags = 9;
+  map<string, Value> metadata = 10;
+  google.protobuf.Timestamp created_at = 11;
+  google.protobuf.Timestamp updated_at = 12;
+}
+
+// Категории деталей космических кораблей
+enum Category {
+  CATEGORY_UNSPECIFIED = 0;
+  CATEGORY_ENGINE = 1;
+  CATEGORY_FUEL = 2;
+  CATEGORY_PORTHOLE = 3;
+  CATEGORY_WING = 4;
+}
+
+// Физические размеры детали
+message Dimensions {
+  double length = 1;
+  double width = 2;
+  double height = 3;
+  double weight = 4;
+}
+
+// Информация о производителе
+message Manufacturer {
+  string name = 1;
+  string country = 2;
+  string website = 3;
+}
+
+// Универсальное значение для метаданных
+message Value {
+  oneof value {
+    string string_value = 1;
+    int64 int64_value = 2;
+    double double_value = 3;
+    bool bool_value = 4;
+  }
+}

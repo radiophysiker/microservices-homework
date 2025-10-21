@@ -1,0 +1,39 @@
+get:
+  operationId: getOrder
+  summary: Получить заказ по UUID
+  description: Возвращает информацию о заказе по его UUID
+  tags:
+    - Orders
+  parameters:
+    - $ref: "../params/order_uuid.yaml"
+  responses:
+    "200":
+      description: Информация о заказе
+      content:
+        application/json:
+          schema:
+            $ref: "../components/get_order_response.yaml"
+    "400":
+      description: Неверный запрос
+      content:
+        application/json:
+          schema:
+            $ref: "../components/errors/bad_request_error.yaml"
+    "404":
+      description: Заказ не найден
+      content:
+        application/json:
+          schema:
+            $ref: "../components/errors/not_found_error.yaml"
+    "500":
+      description: Внутренняя ошибка сервера
+      content:
+        application/json:
+          schema:
+            $ref: "../components/errors/internal_server_error.yaml"
+    default:
+      description: Общая ошибка
+      content:
+        application/json:
+          schema:
+            $ref: "../components/errors/generic_error.yaml"
