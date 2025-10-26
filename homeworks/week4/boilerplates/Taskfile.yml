@@ -39,7 +39,7 @@ vars:
   COVERAGE_DIR: '{{.ROOT_DIR}}/coverage'
   COVERAGE_FILE: total.out
   ORDER_MIGRATIONS_DIR: './order/migrations'
-  POSTGRES_DSN: 'postgres://order-service-user:order-service-password@localhost:5432/order-service?sslmode=disable'
+  POSTGRES_DSN: 'postgres://order-service-user:${ORDER_DB_PASSWORD}@localhost:5432/order-service?sslmode=disable'
 
   MODULES: assembly inventory order payment platform iam notification
   SERVICES: core,assembly,inventory,order,payment,iam,notification

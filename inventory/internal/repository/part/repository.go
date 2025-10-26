@@ -1,23 +1,13 @@
 package part
 
-import (
-	"sync"
-
-	repoModel "github.com/radiophysiker/microservices-homework/inventory/internal/repository/model"
-)
+import "go.mongodb.org/mongo-driver/mongo"
 
 // Repository реализует интерфейс PartRepository
 type Repository struct {
-	mu    sync.RWMutex
-	parts map[string]*repoModel.Part
+	collection *mongo.Collection
 }
 
 // NewRepository создает новый экземпляр Repository
-func NewRepository() *Repository {
-	repo := &Repository{
-		parts: make(map[string]*repoModel.Part),
-	}
-	repo.initTestData()
-
-	return repo
+func NewRepository(collection *mongo.Collection) *Repository {
+	return &Repository{collection: collection}
 }

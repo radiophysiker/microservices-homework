@@ -1,6 +1,8 @@
 package converter
 
 import (
+	"strings"
+
 	"github.com/radiophysiker/microservices-homework/order/internal/model"
 	repoModel "github.com/radiophysiker/microservices-homework/order/internal/repository/model"
 )
@@ -103,6 +105,41 @@ func toRepoStatus(s model.Status) repoModel.Status {
 	case model.StatusPaid:
 		return repoModel.StatusPaid
 	case model.StatusCancelled:
+		return repoModel.StatusCancelled
+	default:
+		return repoModel.StatusUnspecified
+	}
+}
+
+// StringToPaymentMethod конвертирует строку в PaymentMethod
+func StringToPaymentMethod(s string) *repoModel.PaymentMethod {
+	switch strings.ToUpper(strings.TrimSpace(s)) {
+	case "CARD":
+		pm := repoModel.PaymentMethodCard
+		return &pm
+	case "SBP":
+		pm := repoModel.PaymentMethodSBP
+		return &pm
+	case "CREDIT_CARD":
+		pm := repoModel.PaymentMethodCreditCard
+		return &pm
+	case "INVESTOR_MONEY":
+		pm := repoModel.PaymentMethodInvestorMoney
+		return &pm
+	default:
+		pm := repoModel.PaymentMethodUnspecified
+		return &pm
+	}
+}
+
+// StringToStatus конвертирует строку в Status
+func StringToStatus(s string) repoModel.Status {
+	switch strings.ToUpper(strings.TrimSpace(s)) {
+	case "PENDING_PAYMENT":
+		return repoModel.StatusPendingPayment
+	case "PAID":
+		return repoModel.StatusPaid
+	case "CANCELLED":
 		return repoModel.StatusCancelled
 	default:
 		return repoModel.StatusUnspecified

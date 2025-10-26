@@ -38,6 +38,7 @@ func (s *RepositoryTestSuite) TestCreateOrder() {
 			order: s.createTestOrder(s.testOrderUUID, 200.00, model.StatusPaid),
 			setupFunc: func() {
 				existingOrder := s.createTestOrder(s.testOrderUUID, 100.00, model.StatusPendingPayment)
+				s.repo.On("CreateOrder", s.ctx, existingOrder).Return(nil).Once()
 				err := s.repo.CreateOrder(s.ctx, existingOrder)
 				require.NoError(s.T(), err)
 			},
@@ -82,6 +83,10 @@ func (s *RepositoryTestSuite) TestCreateOrder() {
 			if tt.setupFunc != nil {
 				tt.setupFunc()
 			}
+
+			s.repo.On("CreateOrder", s.ctx, tt.order).Return(nil).Once()
+
+			s.repo.On("GetOrder", s.ctx, tt.order.OrderUUID.String()).Return(tt.order, nil).Once()
 
 			err := s.repo.CreateOrder(s.ctx, tt.order)
 

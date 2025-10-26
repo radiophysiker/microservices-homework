@@ -20,6 +20,7 @@ func (s *RepositoryTestSuite) TestUpdateOrder() {
 			order: s.createTestOrder(s.testOrderUUID, 250.00, model.StatusPaid),
 			setupFunc: func() {
 				existingOrder := s.createTestOrder(s.testOrderUUID, 100.00, model.StatusPendingPayment)
+				s.repo.On("CreateOrder", s.ctx, existingOrder).Return(nil).Once()
 				err := s.repo.CreateOrder(s.ctx, existingOrder)
 				require.NoError(s.T(), err)
 			},
@@ -30,6 +31,7 @@ func (s *RepositoryTestSuite) TestUpdateOrder() {
 			order: s.createTestOrder(s.testOrderUUID, 100.00, model.StatusCancelled),
 			setupFunc: func() {
 				existingOrder := s.createTestOrder(s.testOrderUUID, 100.00, model.StatusPendingPayment)
+				s.repo.On("CreateOrder", s.ctx, existingOrder).Return(nil).Once()
 				err := s.repo.CreateOrder(s.ctx, existingOrder)
 				require.NoError(s.T(), err)
 			},
@@ -49,6 +51,7 @@ func (s *RepositoryTestSuite) TestUpdateOrder() {
 			),
 			setupFunc: func() {
 				existingOrder := s.createTestOrder(s.testOrderUUID, 100.00, model.StatusPendingPayment)
+				s.repo.On("CreateOrder", s.ctx, existingOrder).Return(nil).Once()
 				err := s.repo.CreateOrder(s.ctx, existingOrder)
 				require.NoError(s.T(), err)
 			},
@@ -65,6 +68,7 @@ func (s *RepositoryTestSuite) TestUpdateOrder() {
 			),
 			setupFunc: func() {
 				existingOrder := s.createTestOrder(s.testOrderUUID, 100.00, model.StatusPendingPayment)
+				s.repo.On("CreateOrder", s.ctx, existingOrder).Return(nil).Once()
 				err := s.repo.CreateOrder(s.ctx, existingOrder)
 				require.NoError(s.T(), err)
 			},
@@ -82,6 +86,13 @@ func (s *RepositoryTestSuite) TestUpdateOrder() {
 		s.Run(tt.name, func() {
 			if tt.setupFunc != nil {
 				tt.setupFunc()
+			}
+
+			if tt.errType != nil {
+				s.repo.On("UpdateOrder", s.ctx, tt.order).Return(tt.errType).Once()
+			} else {
+				s.repo.On("UpdateOrder", s.ctx, tt.order).Return(nil).Once()
+				s.repo.On("GetOrder", s.ctx, tt.order.OrderUUID.String()).Return(tt.order, nil).Once()
 			}
 
 			err := s.repo.UpdateOrder(s.ctx, tt.order)

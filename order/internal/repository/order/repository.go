@@ -1,28 +1,17 @@
 package order
 
 import (
-	"sync"
-
-	repoModel "github.com/radiophysiker/microservices-homework/order/internal/repository/model"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 // Repository реализует интерфейс OrderRepository
 type Repository struct {
-	mu     sync.RWMutex
-	orders map[string]*repoModel.Order
+	pool *pgxpool.Pool
 }
 
 // NewRepository создает новый экземпляр Repository
-func NewRepository() *Repository {
+func NewRepository(pool *pgxpool.Pool) *Repository {
 	return &Repository{
-		orders: make(map[string]*repoModel.Order),
+		pool: pool,
 	}
-}
-
-// GetOrderCount возвращает количество заказов в репозитории (для тестирования)
-func (r *Repository) GetOrderCount() int {
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-
-	return len(r.orders)
 }

@@ -16,6 +16,8 @@ func (s *RepositoryTestSuite) TestGetOrder() {
 		Status:     model.StatusPendingPayment,
 	}
 
+	s.repo.On("CreateOrder", s.ctx, existingOrder).Return(nil).Once()
+
 	err := s.repo.CreateOrder(s.ctx, existingOrder)
 	require.NoError(s.T(), err, "failed to setup test data")
 
@@ -53,6 +55,12 @@ func (s *RepositoryTestSuite) TestGetOrder() {
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
+			if tt.wantErr {
+				s.repo.On("GetOrder", s.ctx, tt.uuid).Return(nil, tt.errType).Once()
+			} else {
+				s.repo.On("GetOrder", s.ctx, tt.uuid).Return(existingOrder, nil).Once()
+			}
+
 			order, err := s.repo.GetOrder(s.ctx, tt.uuid)
 
 			if tt.wantErr {

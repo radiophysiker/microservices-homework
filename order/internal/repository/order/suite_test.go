@@ -8,12 +8,13 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/radiophysiker/microservices-homework/order/internal/model"
+	repositoryMocks "github.com/radiophysiker/microservices-homework/order/internal/repository/mocks"
 )
 
 // RepositoryTestSuite содержит общее окружение для всех тестов репозитория
 type RepositoryTestSuite struct {
 	suite.Suite
-	repo *Repository
+	repo *repositoryMocks.MockOrderRepository
 	ctx  context.Context
 
 	testOrderUUID uuid.UUID
@@ -23,7 +24,7 @@ type RepositoryTestSuite struct {
 
 // SetupTest запускается перед каждым тестом
 func (s *RepositoryTestSuite) SetupTest() {
-	s.repo = NewRepository()
+	s.repo = repositoryMocks.NewMockOrderRepository(s.T())
 	s.ctx = context.Background()
 
 	s.testOrderUUID = uuid.MustParse("550e8400-e29b-41d4-a716-446655440003")
