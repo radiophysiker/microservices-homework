@@ -22,9 +22,10 @@ func (s *Service) CancelOrder(ctx context.Context, orderUUID uuid.UUID) (*model.
 
 	order.Status = model.StatusCancelled
 
-	if err := s.orderRepository.UpdateOrder(ctx, order); err != nil {
+	updated, err := s.orderRepository.UpdateOrder(ctx, order)
+	if err != nil {
 		return nil, fmt.Errorf("failed to update order: %w", err)
 	}
 
-	return order, nil
+	return updated, nil
 }

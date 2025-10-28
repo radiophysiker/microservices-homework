@@ -4,8 +4,9 @@ import (
 	"context"
 	"testing"
 
-	repositoryMocks "github.com/radiophysiker/microservices-homework/inventory/internal/repository/mocks"
 	"github.com/stretchr/testify/suite"
+
+	repositoryMocks "github.com/radiophysiker/microservices-homework/inventory/internal/repository/mocks"
 )
 
 // RepositoryTestSuite содержит общее окружение для всех тестов репозитория

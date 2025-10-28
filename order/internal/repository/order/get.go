@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 
@@ -20,22 +21,33 @@ func (r *Repository) GetOrder(ctx context.Context, orderUUID string) (*model.Ord
 		return nil, model.NewInvalidOrderDataError(orderUUID)
 	}
 
-	query := `
-		SELECT uuid, user_uuid, part_uuids, total_price, transaction_uuid, payment_method, status
-		FROM orders
-		WHERE uuid = $1
-	`
+	var (
+		repoOrder        repoModel.Order
+		paymentMethodStr *string
+		statusStr        string
+	)
 
-	var repoOrder repoModel.Order
+	builder := sq.
+		Select(
+			"uuid",
+			"user_uuid",
+			"total_price",
+			"transaction_uuid",
+			"payment_method",
+			"status",
+		).
+		From("orders").
+		Where(sq.Eq{"uuid": orderUUID}).
+		PlaceholderFormat(sq.Dollar)
 
-	var paymentMethodStr *string
+	sql, args, buildErr := builder.ToSql()
+	if buildErr != nil {
+		return nil, fmt.Errorf("failed to build get order query: %w", buildErr)
+	}
 
-	var statusStr string
-
-	err = r.pool.QueryRow(ctx, query, orderUUID).Scan(
+	err = r.pool.QueryRow(ctx, sql, args...).Scan(
 		&repoOrder.OrderUUID,
 		&repoOrder.UserUUID,
-		&repoOrder.PartUUIDs,
 		&repoOrder.TotalPrice,
 		&repoOrder.TransactionUUID,
 		&paymentMethodStr,
@@ -53,7 +65,35 @@ func (r *Repository) GetOrder(ctx context.Context, orderUUID string) (*model.Ord
 		repoOrder.PaymentMethod = converter.StringToPaymentMethod(*paymentMethodStr)
 	}
 
-	repoOrder.Status = converter.StringToStatus(statusStr)
+	repoOrder.Status = converter.StringToOrderStatus(statusStr)
+
+	itemsSQL, itemsArgs, buildItemsErr := sq.Select("part_uuid", "quantity", "price").
+		From("order_items").
+		Where(sq.Eq{"order_uuid": repoOrder.OrderUUID}).
+		PlaceholderFormat(sq.Dollar).
+		ToSql()
+	if buildItemsErr != nil {
+		return nil, fmt.Errorf("failed to build get order items query: %w", buildItemsErr)
+	}
+
+	rows, qErr := r.pool.Query(ctx, itemsSQL, itemsArgs...)
+	if qErr != nil {
+		return nil, fmt.Errorf("failed to get order items: %w", qErr)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var it repoModel.OrderItem
+		if err = rows.Scan(&it.PartUUID, &it.Quantity, &it.Price); err != nil {
+			return nil, fmt.Errorf("failed to scan order item: %w", err)
+		}
+
+		repoOrder.Items = append(repoOrder.Items, it)
+	}
+
+	if rows.Err() != nil {
+		return nil, fmt.Errorf("failed to iterate order items: %w", rows.Err())
+	}
 
 	return converter.ToServiceOrder(&repoOrder), nil
 }

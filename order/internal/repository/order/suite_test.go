@@ -37,7 +37,7 @@ func (s *RepositoryTestSuite) createTestOrder(orderUUID uuid.UUID, totalPrice fl
 	return &model.Order{
 		OrderUUID:  orderUUID,
 		UserUUID:   s.testUserUUID,
-		PartUUIDs:  []uuid.UUID{s.testPartUUID},
+		Items:      []model.OrderItem{{PartUUID: s.testPartUUID, Quantity: 1}},
 		TotalPrice: totalPrice,
 		Status:     status,
 	}
@@ -45,10 +45,15 @@ func (s *RepositoryTestSuite) createTestOrder(orderUUID uuid.UUID, totalPrice fl
 
 // createTestOrderWithParts создает тестовый заказ с множественными частями
 func (s *RepositoryTestSuite) createTestOrderWithParts(orderUUID uuid.UUID, partUUIDs []uuid.UUID, totalPrice float64, status model.Status) *model.Order {
+	items := make([]model.OrderItem, 0, len(partUUIDs))
+	for _, p := range partUUIDs {
+		items = append(items, model.OrderItem{PartUUID: p, Quantity: 1})
+	}
+
 	return &model.Order{
 		OrderUUID:  orderUUID,
 		UserUUID:   s.testUserUUID,
-		PartUUIDs:  partUUIDs,
+		Items:      items,
 		TotalPrice: totalPrice,
 		Status:     status,
 	}
@@ -59,7 +64,7 @@ func (s *RepositoryTestSuite) createTestOrderWithPayment(orderUUID uuid.UUID, to
 	return &model.Order{
 		OrderUUID:       orderUUID,
 		UserUUID:        s.testUserUUID,
-		PartUUIDs:       []uuid.UUID{s.testPartUUID},
+		Items:           []model.OrderItem{{PartUUID: s.testPartUUID, Quantity: 1}},
 		TotalPrice:      totalPrice,
 		Status:          status,
 		TransactionUUID: transactionUUID,

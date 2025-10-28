@@ -20,10 +20,19 @@ func ToServiceOrder(repoOrder *repoModel.Order) *model.Order {
 		paymentMethod = &pm
 	}
 
+	serviceItems := make([]model.OrderItem, 0, len(repoOrder.Items))
+	for _, it := range repoOrder.Items {
+		serviceItems = append(serviceItems, model.OrderItem{
+			PartUUID: it.PartUUID,
+			Quantity: it.Quantity,
+			Price:    it.Price,
+		})
+	}
+
 	return &model.Order{
 		OrderUUID:       repoOrder.OrderUUID,
 		UserUUID:        repoOrder.UserUUID,
-		PartUUIDs:       repoOrder.PartUUIDs,
+		Items:           serviceItems,
 		TotalPrice:      repoOrder.TotalPrice,
 		TransactionUUID: repoOrder.TransactionUUID,
 		PaymentMethod:   paymentMethod,
@@ -44,10 +53,19 @@ func ToRepoOrder(serviceOrder *model.Order) *repoModel.Order {
 		paymentMethod = &pm
 	}
 
+	repoItems := make([]repoModel.OrderItem, 0, len(serviceOrder.Items))
+	for _, it := range serviceOrder.Items {
+		repoItems = append(repoItems, repoModel.OrderItem{
+			PartUUID: it.PartUUID,
+			Quantity: it.Quantity,
+			Price:    it.Price,
+		})
+	}
+
 	return &repoModel.Order{
 		OrderUUID:       serviceOrder.OrderUUID,
 		UserUUID:        serviceOrder.UserUUID,
-		PartUUIDs:       serviceOrder.PartUUIDs,
+		Items:           repoItems,
 		TotalPrice:      serviceOrder.TotalPrice,
 		TransactionUUID: serviceOrder.TransactionUUID,
 		PaymentMethod:   paymentMethod,
@@ -132,8 +150,8 @@ func StringToPaymentMethod(s string) *repoModel.PaymentMethod {
 	}
 }
 
-// StringToStatus конвертирует строку в Status
-func StringToStatus(s string) repoModel.Status {
+// StringToOrderStatus конвертирует строку в Status
+func StringToOrderStatus(s string) repoModel.Status {
 	switch strings.ToUpper(strings.TrimSpace(s)) {
 	case "PENDING_PAYMENT":
 		return repoModel.StatusPendingPayment

@@ -3,6 +3,7 @@ package part
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"go.mongodb.org/mongo-driver/bson"
 
@@ -21,10 +22,8 @@ func (r *Repository) ListParts(ctx context.Context, filter *model.Filter) ([]*mo
 	}
 
 	defer func() {
-		if closeErr := cursor.Close(ctx); closeErr != nil {
-			// Логируем ошибку закрытия курсора, но не маскируем основную ошибку
-			// В реальном проекте здесь был бы логгер
-			_ = closeErr // Игнорируем ошибку закрытия курсора
+		if err = cursor.Close(ctx); err != nil {
+			log.Printf("failed to close cursor: %v", err)
 		}
 	}()
 

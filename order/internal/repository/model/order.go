@@ -59,9 +59,16 @@ func (s Status) String() string {
 type Order struct {
 	OrderUUID       uuid.UUID
 	UserUUID        uuid.UUID
-	PartUUIDs       []uuid.UUID
+	Items           []OrderItem
 	TotalPrice      float64
 	TransactionUUID *uuid.UUID
 	PaymentMethod   *PaymentMethod
 	Status          Status
+}
+
+// OrderItem представляет позицию заказа в repository слое
+type OrderItem struct {
+	PartUUID uuid.UUID
+	Quantity int
+	Price    *float64
 }

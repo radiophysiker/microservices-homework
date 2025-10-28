@@ -1,7 +1,6 @@
 package order
 
 import (
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
 	"github.com/radiophysiker/microservices-homework/order/internal/model"
@@ -11,7 +10,7 @@ func (s *RepositoryTestSuite) TestGetOrder() {
 	existingOrder := &model.Order{
 		OrderUUID:  s.testOrderUUID,
 		UserUUID:   s.testUserUUID,
-		PartUUIDs:  []uuid.UUID{s.testPartUUID},
+		Items:      []model.OrderItem{{PartUUID: s.testPartUUID, Quantity: 1}},
 		TotalPrice: 100.50,
 		Status:     model.StatusPendingPayment,
 	}
