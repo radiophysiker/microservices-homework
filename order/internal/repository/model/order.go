@@ -70,5 +70,4 @@ type Order struct {
 type OrderItem struct {
 	PartUUID uuid.UUID
 	Quantity int
-	Price    *float64
 }

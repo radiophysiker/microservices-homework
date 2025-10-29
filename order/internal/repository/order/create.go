@@ -57,18 +57,11 @@ func (r *Repository) CreateOrder(ctx context.Context, order *model.Order) error 
 
 	if len(repoOrder.Items) > 0 {
 		itemsInsert := sq.Insert("order_items").
-			Columns("order_uuid", "part_uuid", "quantity", "price").
+			Columns("order_uuid", "part_uuid", "quantity").
 			PlaceholderFormat(sq.Dollar)
 
 		for _, it := range repoOrder.Items {
-			var price any
-			if it.Price != nil {
-				price = *it.Price
-			} else {
-				price = nil
-			}
-
-			itemsInsert = itemsInsert.Values(repoOrder.OrderUUID, it.PartUUID, it.Quantity, price)
+			itemsInsert = itemsInsert.Values(repoOrder.OrderUUID, it.PartUUID, it.Quantity)
 		}
 
 		itemSQL, itemArgs, buildErr := itemsInsert.ToSql()

@@ -43,7 +43,6 @@ func (s *Service) CreateOrder(ctx context.Context, userUUID uuid.UUID, partUUIDs
 		items = append(items, model.OrderItem{
 			PartUUID: parsedPartUUID,
 			Quantity: 1,
-			Price:    &part.Price,
 		})
 	}
 

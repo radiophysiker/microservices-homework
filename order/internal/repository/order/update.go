@@ -89,9 +89,9 @@ func (r *Repository) upsertOrderItems(ctx context.Context, tx pgx.Tx, repoOrder 
 
 	// 1. UPSERT существующих и новых items
 	builder := sq.Insert("order_items").
-		Columns("order_uuid", "part_uuid", "quantity", "price").
+		Columns("order_uuid", "part_uuid", "quantity").
 		PlaceholderFormat(sq.Dollar).
-		Suffix("ON CONFLICT (order_uuid, part_uuid) DO UPDATE SET quantity = EXCLUDED.quantity, price = EXCLUDED.price")
+		Suffix("ON CONFLICT (order_uuid, part_uuid) DO UPDATE SET quantity = EXCLUDED.quantity")
 
 	partUUIDs := make([]uuid.UUID, 0, len(repoOrder.Items))
 
@@ -100,7 +100,6 @@ func (r *Repository) upsertOrderItems(ctx context.Context, tx pgx.Tx, repoOrder 
 			repoOrder.OrderUUID,
 			item.PartUUID,
 			item.Quantity,
-			item.Price,
 		)
 
 		partUUIDs = append(partUUIDs, item.PartUUID)

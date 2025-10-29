@@ -67,7 +67,7 @@ func (r *Repository) GetOrder(ctx context.Context, orderUUID string) (*model.Ord
 
 	repoOrder.Status = converter.StringToOrderStatus(statusStr)
 
-	itemsSQL, itemsArgs, buildItemsErr := sq.Select("part_uuid", "quantity", "price").
+	itemsSQL, itemsArgs, buildItemsErr := sq.Select("part_uuid", "quantity").
 		From("order_items").
 		Where(sq.Eq{"order_uuid": repoOrder.OrderUUID}).
 		PlaceholderFormat(sq.Dollar).
@@ -84,7 +84,7 @@ func (r *Repository) GetOrder(ctx context.Context, orderUUID string) (*model.Ord
 
 	for rows.Next() {
 		var it repoModel.OrderItem
-		if err = rows.Scan(&it.PartUUID, &it.Quantity, &it.Price); err != nil {
+		if err = rows.Scan(&it.PartUUID, &it.Quantity); err != nil {
 			return nil, fmt.Errorf("failed to scan order item: %w", err)
 		}
 

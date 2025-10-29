@@ -25,7 +25,6 @@ func ToServiceOrder(repoOrder *repoModel.Order) *model.Order {
 		serviceItems = append(serviceItems, model.OrderItem{
 			PartUUID: it.PartUUID,
 			Quantity: it.Quantity,
-			Price:    it.Price,
 		})
 	}
 
@@ -58,7 +57,6 @@ func ToRepoOrder(serviceOrder *model.Order) *repoModel.Order {
 		repoItems = append(repoItems, repoModel.OrderItem{
 			PartUUID: it.PartUUID,
 			Quantity: it.Quantity,
-			Price:    it.Price,
 		})
 	}
 

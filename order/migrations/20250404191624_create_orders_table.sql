@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS orders (
     total_price DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     transaction_uuid UUID,
     payment_method TEXT,
-    status TEXT NOT NULL DEFAULT 'PENDING_PAYMENT',
+    status TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW()
 );
@@ -15,7 +15,6 @@ CREATE TABLE IF NOT EXISTS order_items (
     order_uuid UUID NOT NULL REFERENCES orders(uuid) ON DELETE CASCADE,
     part_uuid UUID NOT NULL,
     quantity INT NOT NULL DEFAULT 1,
-    price NUMERIC(10,2),
     PRIMARY KEY (order_uuid, part_uuid)
 );
 -- +goose StatementEnd

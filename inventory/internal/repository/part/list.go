@@ -22,7 +22,7 @@ func (r *Repository) ListParts(ctx context.Context, filter *model.Filter) ([]*mo
 	}
 
 	defer func() {
-		if err = cursor.Close(ctx); err != nil {
+		if err := cursor.Close(ctx); err != nil {
 			log.Printf("failed to close cursor: %v", err)
 		}
 	}()
