@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
@@ -60,7 +61,7 @@ func (r *Repository) updateOrderTable(ctx context.Context, tx pgx.Tx, repoOrder 
 		Set("transaction_uuid", repoOrder.TransactionUUID).
 		Set("payment_method", paymentMethodStr).
 		Set("status", repoOrder.Status.String()).
-		Set("updated_at", sq.Expr("NOW()")).
+		Set("updated_at", time.Now()).
 		Where(sq.Eq{"uuid": repoOrder.OrderUUID}).
 		PlaceholderFormat(sq.Dollar).
 		ToSql()

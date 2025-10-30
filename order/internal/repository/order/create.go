@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"time"
 
 	sq "github.com/Masterminds/squirrel"
 
@@ -22,7 +23,7 @@ func (r *Repository) CreateOrder(ctx context.Context, order *model.Order) error 
 	}
 
 	builder := sq.Insert("orders").
-		Columns("uuid", "user_uuid", "total_price", "transaction_uuid", "payment_method", "status").
+		Columns("uuid", "user_uuid", "total_price", "transaction_uuid", "payment_method", "status", "updated_at").
 		Values(
 			repoOrder.OrderUUID,
 			repoOrder.UserUUID,
@@ -30,6 +31,7 @@ func (r *Repository) CreateOrder(ctx context.Context, order *model.Order) error 
 			repoOrder.TransactionUUID,
 			paymentMethodStr,
 			repoOrder.Status.String(),
+			time.Now(),
 		).PlaceholderFormat(sq.Dollar)
 
 	sql, args, err := builder.ToSql()
