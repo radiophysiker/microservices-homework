@@ -12,6 +12,6 @@ type OrderRepository interface {
 	CreateOrder(ctx context.Context, order *model.Order) error
 	// GetOrder возвращает заказ по UUID
 	GetOrder(ctx context.Context, orderUUID string) (*model.Order, error)
-	// UpdateOrder обновляет заказ
-	UpdateOrder(ctx context.Context, order *model.Order) error
+	// UpdateOrder обновляет заказ и возвращает актуальное состояние
+	UpdateOrder(ctx context.Context, order *model.Order) (*model.Order, error)
 }

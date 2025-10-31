@@ -1,6 +1,8 @@
 package converter
 
 import (
+	"github.com/google/uuid"
+
 	"github.com/radiophysiker/microservices-homework/order/internal/model"
 	orderv1 "github.com/radiophysiker/microservices-homework/shared/pkg/openapi/order/v1"
 	orderpb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/order/v1"
@@ -26,10 +28,15 @@ func ToOpenAPIOrder(serviceOrder *model.Order) *orderv1.OrderDto {
 		paymentMethod = &nilPm
 	}
 
+	partUUIDs := make([]uuid.UUID, 0, len(serviceOrder.Items))
+	for _, it := range serviceOrder.Items {
+		partUUIDs = append(partUUIDs, it.PartUUID)
+	}
+
 	return &orderv1.OrderDto{
 		OrderUUID:       serviceOrder.OrderUUID,
 		UserUUID:        serviceOrder.UserUUID,
-		PartUuids:       serviceOrder.PartUUIDs,
+		PartUuids:       partUUIDs,
 		TotalPrice:      serviceOrder.TotalPrice,
 		TransactionUUID: transactionUUID,
 		PaymentMethod:   paymentMethod,
@@ -181,10 +188,9 @@ func ToProtoOrder(serviceOrder *model.Order) *orderpb.GetOrderResponse {
 		paymentMethod = &pm
 	}
 
-	// Конвертируем part UUIDs в строки
-	partUUIDStrings := make([]string, len(serviceOrder.PartUUIDs))
-	for i, partUUID := range serviceOrder.PartUUIDs {
-		partUUIDStrings[i] = partUUID.String()
+	partUUIDStrings := make([]string, 0, len(serviceOrder.Items))
+	for _, it := range serviceOrder.Items {
+		partUUIDStrings = append(partUUIDStrings, it.PartUUID.String())
 	}
 
 	return &orderpb.GetOrderResponse{

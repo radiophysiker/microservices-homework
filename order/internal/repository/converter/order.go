@@ -1,6 +1,8 @@
 package converter
 
 import (
+	"strings"
+
 	"github.com/radiophysiker/microservices-homework/order/internal/model"
 	repoModel "github.com/radiophysiker/microservices-homework/order/internal/repository/model"
 )
@@ -18,10 +20,18 @@ func ToServiceOrder(repoOrder *repoModel.Order) *model.Order {
 		paymentMethod = &pm
 	}
 
+	serviceItems := make([]model.OrderItem, 0, len(repoOrder.Items))
+	for _, it := range repoOrder.Items {
+		serviceItems = append(serviceItems, model.OrderItem{
+			PartUUID: it.PartUUID,
+			Quantity: it.Quantity,
+		})
+	}
+
 	return &model.Order{
 		OrderUUID:       repoOrder.OrderUUID,
 		UserUUID:        repoOrder.UserUUID,
-		PartUUIDs:       repoOrder.PartUUIDs,
+		Items:           serviceItems,
 		TotalPrice:      repoOrder.TotalPrice,
 		TransactionUUID: repoOrder.TransactionUUID,
 		PaymentMethod:   paymentMethod,
@@ -42,10 +52,18 @@ func ToRepoOrder(serviceOrder *model.Order) *repoModel.Order {
 		paymentMethod = &pm
 	}
 
+	repoItems := make([]repoModel.OrderItem, 0, len(serviceOrder.Items))
+	for _, it := range serviceOrder.Items {
+		repoItems = append(repoItems, repoModel.OrderItem{
+			PartUUID: it.PartUUID,
+			Quantity: it.Quantity,
+		})
+	}
+
 	return &repoModel.Order{
 		OrderUUID:       serviceOrder.OrderUUID,
 		UserUUID:        serviceOrder.UserUUID,
-		PartUUIDs:       serviceOrder.PartUUIDs,
+		Items:           repoItems,
 		TotalPrice:      serviceOrder.TotalPrice,
 		TransactionUUID: serviceOrder.TransactionUUID,
 		PaymentMethod:   paymentMethod,
@@ -103,6 +121,41 @@ func toRepoStatus(s model.Status) repoModel.Status {
 	case model.StatusPaid:
 		return repoModel.StatusPaid
 	case model.StatusCancelled:
+		return repoModel.StatusCancelled
+	default:
+		return repoModel.StatusUnspecified
+	}
+}
+
+// StringToPaymentMethod конвертирует строку в PaymentMethod
+func StringToPaymentMethod(s string) *repoModel.PaymentMethod {
+	switch strings.ToUpper(strings.TrimSpace(s)) {
+	case "CARD":
+		pm := repoModel.PaymentMethodCard
+		return &pm
+	case "SBP":
+		pm := repoModel.PaymentMethodSBP
+		return &pm
+	case "CREDIT_CARD":
+		pm := repoModel.PaymentMethodCreditCard
+		return &pm
+	case "INVESTOR_MONEY":
+		pm := repoModel.PaymentMethodInvestorMoney
+		return &pm
+	default:
+		pm := repoModel.PaymentMethodUnspecified
+		return &pm
+	}
+}
+
+// StringToOrderStatus конвертирует строку в Status
+func StringToOrderStatus(s string) repoModel.Status {
+	switch strings.ToUpper(strings.TrimSpace(s)) {
+	case "PENDING_PAYMENT":
+		return repoModel.StatusPendingPayment
+	case "PAID":
+		return repoModel.StatusPaid
+	case "CANCELLED":
 		return repoModel.StatusCancelled
 	default:
 		return repoModel.StatusUnspecified

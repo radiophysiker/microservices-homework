@@ -8,21 +8,20 @@ import (
 
 // TestListParts проверяет метод ListParts репозитория
 func (s *RepositoryTestSuite) TestListParts() {
-	lenTaskList := len(testParts)
+	testData := GetTestParts()
+	allParts := testData
+
 	tests := []struct {
 		name      string
 		filter    *model.Filter
 		wantCount int
-		check     func(parts []*model.Part)
+		wantParts []*model.Part
 	}{
 		{
 			name:      "success_nil_filter_returns_all",
 			filter:    nil,
-			wantCount: lenTaskList,
-			check: func(parts []*model.Part) {
-				require.NotNil(s.T(), parts)
-				require.Len(s.T(), parts, lenTaskList)
-			},
+			wantCount: len(allParts),
+			wantParts: allParts,
 		},
 		{
 			name: "success_filter_by_specific_uuids",
@@ -33,21 +32,15 @@ func (s *RepositoryTestSuite) TestListParts() {
 				},
 			},
 			wantCount: 2,
-			check: func(parts []*model.Part) {
-				require.NotNil(s.T(), parts)
-				require.Len(s.T(), parts, 2)
-			},
+			wantParts: []*model.Part{allParts[0], allParts[1]},
 		},
 		{
 			name: "success_filter_empty_uuids_returns_all",
 			filter: &model.Filter{
 				UUIDs: []string{},
 			},
-			wantCount: lenTaskList,
-			check: func(parts []*model.Part) {
-				require.NotNil(s.T(), parts)
-				require.Len(s.T(), parts, lenTaskList)
-			},
+			wantCount: len(allParts),
+			wantParts: allParts,
 		},
 		{
 			name: "success_filter_nonexistent_uuid",
@@ -55,20 +48,19 @@ func (s *RepositoryTestSuite) TestListParts() {
 				UUIDs: []string{"nonexistent-uuid"},
 			},
 			wantCount: 0,
-			check: func(parts []*model.Part) {
-				require.NotNil(s.T(), parts)
-				require.Empty(s.T(), parts)
-			},
+			wantParts: []*model.Part{},
 		},
 	}
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
+			s.repo.On("ListParts", s.ctx, tt.filter).Return(tt.wantParts, nil).Once()
+
 			parts, err := s.repo.ListParts(s.ctx, tt.filter)
 
 			require.NoError(s.T(), err)
 			require.Len(s.T(), parts, tt.wantCount)
-			tt.check(parts)
+			require.Equal(s.T(), tt.wantParts, parts)
 		})
 	}
 }

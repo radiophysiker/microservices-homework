@@ -36,7 +36,7 @@ func (s *ServiceTestSuite) TestPayOrder() {
 				}
 				repo.EXPECT().GetOrder(s.ctx, mock.AnythingOfType("string")).Return(order, nil).Once()
 				pay.EXPECT().PayOrder(s.ctx, mock.AnythingOfType("string"), mock.AnythingOfType("string"), mock.MatchedBy(func(pm paymentpb.PaymentMethod) bool { return true })).Return("550e8400-e29b-41d4-a716-446655440000", nil).Once()
-				repo.EXPECT().UpdateOrder(s.ctx, mock.AnythingOfType("*model.Order")).Return(nil).Once()
+				repo.EXPECT().UpdateOrder(s.ctx, mock.AnythingOfType("*model.Order")).Return(&model.Order{Status: model.StatusPaid}, nil).Once()
 			},
 			wantOrder: &model.Order{
 				Status: model.StatusPaid,

@@ -8,6 +8,9 @@ import (
 
 // TestGetPart проверяет метод GetPart репозитория
 func (s *RepositoryTestSuite) TestGetPart() {
+	testData := GetTestParts()
+	existingPart := testData[0]
+
 	tests := []struct {
 		name    string
 		uuid    string
@@ -35,6 +38,12 @@ func (s *RepositoryTestSuite) TestGetPart() {
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
+			if tt.wantErr {
+				s.repo.On("GetPart", s.ctx, tt.uuid).Return(nil, tt.errType).Once()
+			} else {
+				s.repo.On("GetPart", s.ctx, tt.uuid).Return(existingPart, nil).Once()
+			}
+
 			part, err := s.repo.GetPart(s.ctx, tt.uuid)
 
 			if tt.wantErr {

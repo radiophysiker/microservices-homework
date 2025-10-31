@@ -47,9 +47,10 @@ func (s *Service) PayOrder(ctx context.Context, orderUUID uuid.UUID, paymentMeth
 	order.PaymentMethod = &paymentMethod
 	order.Status = model.StatusPaid
 
-	if err := s.orderRepository.UpdateOrder(ctx, order); err != nil {
+	updated, err := s.orderRepository.UpdateOrder(ctx, order)
+	if err != nil {
 		return nil, fmt.Errorf("failed to update order: %w", err)
 	}
 
-	return order, nil
+	return updated, nil
 }

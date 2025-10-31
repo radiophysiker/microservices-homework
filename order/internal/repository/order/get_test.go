@@ -1,7 +1,6 @@
 package order
 
 import (
-	"github.com/google/uuid"
 	"github.com/stretchr/testify/require"
 
 	"github.com/radiophysiker/microservices-homework/order/internal/model"
@@ -11,10 +10,12 @@ func (s *RepositoryTestSuite) TestGetOrder() {
 	existingOrder := &model.Order{
 		OrderUUID:  s.testOrderUUID,
 		UserUUID:   s.testUserUUID,
-		PartUUIDs:  []uuid.UUID{s.testPartUUID},
+		Items:      []model.OrderItem{{PartUUID: s.testPartUUID, Quantity: 1}},
 		TotalPrice: 100.50,
 		Status:     model.StatusPendingPayment,
 	}
+
+	s.repo.On("CreateOrder", s.ctx, existingOrder).Return(nil).Once()
 
 	err := s.repo.CreateOrder(s.ctx, existingOrder)
 	require.NoError(s.T(), err, "failed to setup test data")
@@ -53,6 +54,12 @@ func (s *RepositoryTestSuite) TestGetOrder() {
 
 	for _, tt := range tests {
 		s.Run(tt.name, func() {
+			if tt.wantErr {
+				s.repo.On("GetOrder", s.ctx, tt.uuid).Return(nil, tt.errType).Once()
+			} else {
+				s.repo.On("GetOrder", s.ctx, tt.uuid).Return(existingOrder, nil).Once()
+			}
+
 			order, err := s.repo.GetOrder(s.ctx, tt.uuid)
 
 			if tt.wantErr {

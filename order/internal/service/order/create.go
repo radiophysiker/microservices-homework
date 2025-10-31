@@ -30,14 +30,26 @@ func (s *Service) CreateOrder(ctx context.Context, userUUID uuid.UUID, partUUIDs
 	}
 
 	var totalPrice float64
+	items := make([]model.OrderItem, 0, len(parts))
+
 	for _, part := range parts {
 		totalPrice += part.Price
+
+		parsedPartUUID, parseErr := uuid.Parse(part.UUID)
+		if parseErr != nil {
+			return nil, model.NewInvalidOrderDataError("invalid part UUID: " + part.UUID)
+		}
+
+		items = append(items, model.OrderItem{
+			PartUUID: parsedPartUUID,
+			Quantity: 1,
+		})
 	}
 
 	order := &model.Order{
 		OrderUUID:  uuid.New(),
 		UserUUID:   userUUID,
-		PartUUIDs:  partUUIDs,
+		Items:      items,
 		TotalPrice: totalPrice,
 		Status:     model.StatusPendingPayment,
 	}

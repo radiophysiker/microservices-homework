@@ -30,7 +30,7 @@ func (s *ServiceTestSuite) TestCancelOrder() {
 					Status:    model.StatusPendingPayment,
 				}
 				repo.EXPECT().GetOrder(s.ctx, mock.AnythingOfType("string")).Return(order, nil).Once()
-				repo.EXPECT().UpdateOrder(s.ctx, mock.AnythingOfType("*model.Order")).Return(nil).Once()
+				repo.EXPECT().UpdateOrder(s.ctx, mock.AnythingOfType("*model.Order")).Return(&model.Order{Status: model.StatusCancelled}, nil).Once()
 			},
 			wantOrder: &model.Order{
 				Status: model.StatusCancelled,
@@ -76,7 +76,7 @@ func (s *ServiceTestSuite) TestCancelOrder() {
 					Status:    model.StatusPendingPayment,
 				}
 				repo.EXPECT().GetOrder(s.ctx, mock.AnythingOfType("string")).Return(order, nil).Once()
-				repo.EXPECT().UpdateOrder(s.ctx, mock.AnythingOfType("*model.Order")).Return(errors.New("database error")).Once()
+				repo.EXPECT().UpdateOrder(s.ctx, mock.AnythingOfType("*model.Order")).Return((*model.Order)(nil), errors.New("database error")).Once()
 			},
 			wantOrder: nil,
 			checkErr: func(err error) {

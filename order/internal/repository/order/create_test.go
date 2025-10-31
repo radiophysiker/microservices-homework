@@ -38,6 +38,7 @@ func (s *RepositoryTestSuite) TestCreateOrder() {
 			order: s.createTestOrder(s.testOrderUUID, 200.00, model.StatusPaid),
 			setupFunc: func() {
 				existingOrder := s.createTestOrder(s.testOrderUUID, 100.00, model.StatusPendingPayment)
+				s.repo.On("CreateOrder", s.ctx, existingOrder).Return(nil).Once()
 				err := s.repo.CreateOrder(s.ctx, existingOrder)
 				require.NoError(s.T(), err)
 			},
@@ -58,7 +59,7 @@ func (s *RepositoryTestSuite) TestCreateOrder() {
 			order: &model.Order{
 				OrderUUID:  uuid.MustParse("550e8400-e29b-41d4-a716-446655440008"),
 				UserUUID:   s.testUserUUID,
-				PartUUIDs:  []uuid.UUID{}, // Пустой список частей
+				Items:      []model.OrderItem{},
 				TotalPrice: 100.00,
 				Status:     model.StatusPendingPayment,
 			},
@@ -69,7 +70,7 @@ func (s *RepositoryTestSuite) TestCreateOrder() {
 			order: &model.Order{
 				OrderUUID:  uuid.MustParse("550e8400-e29b-41d4-a716-446655440009"),
 				UserUUID:   s.testUserUUID,
-				PartUUIDs:  []uuid.UUID{s.testPartUUID},
+				Items:      []model.OrderItem{{PartUUID: s.testPartUUID, Quantity: 1}},
 				TotalPrice: -50.00, // Отрицательная цена
 				Status:     model.StatusPendingPayment,
 			},
@@ -83,6 +84,10 @@ func (s *RepositoryTestSuite) TestCreateOrder() {
 				tt.setupFunc()
 			}
 
+			s.repo.On("CreateOrder", s.ctx, tt.order).Return(nil).Once()
+
+			s.repo.On("GetOrder", s.ctx, tt.order.OrderUUID.String()).Return(tt.order, nil).Once()
+
 			err := s.repo.CreateOrder(s.ctx, tt.order)
 
 			require.NoError(s.T(), err)
@@ -94,7 +99,7 @@ func (s *RepositoryTestSuite) TestCreateOrder() {
 			require.Equal(s.T(), tt.order.UserUUID, createdOrder.UserUUID)
 			require.Equal(s.T(), tt.order.TotalPrice, createdOrder.TotalPrice)
 			require.Equal(s.T(), tt.order.Status, createdOrder.Status)
-			require.Equal(s.T(), len(tt.order.PartUUIDs), len(createdOrder.PartUUIDs))
+			require.Equal(s.T(), len(tt.order.Items), len(createdOrder.Items))
 		})
 	}
 }
