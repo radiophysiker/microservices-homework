@@ -8,13 +8,15 @@ import (
 	"github.com/radiophysiker/microservices-homework/order/internal/config"
 )
 
+const configPath = ".env"
+
 func main() {
-	cfg, err := config.Load()
+	err := config.Load(configPath)
 	if err != nil {
 		log.Fatalf("config: %v", err)
 	}
 
-	if err := app.Run(context.Background(), cfg); err != nil {
+	if err := app.Run(context.Background()); err != nil {
 		log.Fatalf("app: %v", err)
 	}
 }

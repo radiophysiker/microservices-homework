@@ -221,8 +221,8 @@ func (_c *MockOrderRepository_UpdateOrder_Call) Run(run func(ctx context.Context
 	return _c
 }
 
-func (_c *MockOrderRepository_UpdateOrder_Call) Return(order *model.Order, err error) *MockOrderRepository_UpdateOrder_Call {
-	_c.Call.Return(order, err)
+func (_c *MockOrderRepository_UpdateOrder_Call) Return(order1 *model.Order, err error) *MockOrderRepository_UpdateOrder_Call {
+	_c.Call.Return(order1, err)
 	return _c
 }
 

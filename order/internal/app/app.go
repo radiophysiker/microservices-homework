@@ -16,6 +16,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 
+	"github.com/radiophysiker/microservices-homework/platform/pkg/grpc/health"
 	v1 "github.com/radiophysiker/microservices-homework/order/internal/api/order/v1"
 	inventoryClient "github.com/radiophysiker/microservices-homework/order/internal/client/grpc/inventory/v1"
 	paymentClient "github.com/radiophysiker/microservices-homework/order/internal/client/grpc/payment/v1"
@@ -29,21 +30,21 @@ import (
 	paymentpb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/payment/v1"
 )
 
-func Run(ctx context.Context, cfg config.Config) error {
+func Run(ctx context.Context) error {
 	// Подключаемся к базе данных
-	pool, err := db.Connect(ctx, cfg)
+	pool, err := db.Connect(ctx)
 	if err != nil {
 		return err
 	}
 	defer pool.Close()
 
 	// Выполняем миграции
-	if err := migrator.Run(ctx, pool, cfg.MigrationsDir); err != nil {
+	if err = migrator.Run(ctx, pool, config.AppConfig().Migrations.Directory()); err != nil {
 		return err
 	}
 
 	// External gRPC deps
-	inventoryConn, err := grpc.NewClient(cfg.InventoryAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	inventoryConn, err := grpc.NewClient(config.AppConfig().InventoryGRPC.InventoryAddress(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return err
 	}
@@ -54,7 +55,7 @@ func Run(ctx context.Context, cfg config.Config) error {
 		}
 	}()
 
-	paymentConn, err := grpc.NewClient(cfg.PaymentAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	paymentConn, err := grpc.NewClient(config.AppConfig().PaymentGRPC.PaymentAddress(), grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return err
 	}
@@ -75,15 +76,18 @@ func Run(ctx context.Context, cfg config.Config) error {
 	grpcServer := grpc.NewServer()
 	orderServiceServer := v1.NewAPI(orderService)
 	orderpb.RegisterOrderServiceServer(grpcServer, orderServiceServer)
+	health.RegisterService(grpcServer)
 
 	// Запускаем gRPC сервер в отдельной горутине
 	go func() {
-		lis, err := net.Listen("tcp", cfg.GRPCAddr)
+		grpcAddr := config.AppConfig().OrderGRPC.Address()
+
+		lis, err := net.Listen("tcp", grpcAddr)
 		if err != nil {
 			log.Fatalf("failed to listen: %v", err)
 		}
 
-		log.Println("OrderService gRPC server listening on ", cfg.GRPCAddr)
+		log.Println("OrderService gRPC server listening on ", grpcAddr)
 
 		if err := grpcServer.Serve(lis); err != nil {
 			log.Fatalf("failed to serve gRPC: %v", err)
@@ -96,7 +100,7 @@ func Run(ctx context.Context, cfg config.Config) error {
 	mux := runtime.NewServeMux()
 
 	// Регистрируем gRPC Gateway
-	err = orderpb.RegisterOrderServiceHandlerFromEndpoint(ctx, mux, cfg.GRPCAddr, []grpc.DialOption{
+	err = orderpb.RegisterOrderServiceHandlerFromEndpoint(ctx, mux, config.AppConfig().OrderGRPC.Address(), []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	})
 	if err != nil {
@@ -105,8 +109,9 @@ func Run(ctx context.Context, cfg config.Config) error {
 	}
 
 	// Запускаем HTTP сервер
+	httpAddr := config.AppConfig().OrderHTTP.Address()
 	httpServer := &http.Server{
-		Addr:              cfg.HTTPAddr,
+		Addr:              httpAddr,
 		Handler:           mux,
 		ReadTimeout:       60 * time.Second,
 		WriteTimeout:      60 * time.Second,
@@ -116,7 +121,7 @@ func Run(ctx context.Context, cfg config.Config) error {
 
 	// Graceful shutdown
 	go func() {
-		log.Println("OrderService HTTP Gateway listening on ", cfg.HTTPAddr)
+		log.Println("OrderService HTTP Gateway listening on ", httpAddr)
 
 		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatalf("failed to serve HTTP: %v", err)

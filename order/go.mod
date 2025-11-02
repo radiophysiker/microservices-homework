@@ -4,12 +4,17 @@ go 1.25
 
 replace github.com/radiophysiker/microservices-homework/shared => ../shared
 
+replace github.com/radiophysiker/microservices-homework/platform => ../platform
+
 require (
 	github.com/Masterminds/squirrel v1.5.4
+	github.com/caarlos0/env/v11 v11.3.1
 	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.3
 	github.com/jackc/pgx/v5 v5.7.6
+	github.com/joho/godotenv v1.5.1
 	github.com/pressly/goose/v3 v3.26.0
+	github.com/radiophysiker/microservices-homework/platform v0.0.0-00010101000000-000000000000
 	github.com/radiophysiker/microservices-homework/shared v0.0.0-00010101000000-000000000000
 	github.com/stretchr/testify v1.11.1
 	google.golang.org/grpc v1.76.0

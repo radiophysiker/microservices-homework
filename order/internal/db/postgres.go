@@ -2,7 +2,6 @@ package db
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -13,19 +12,16 @@ import (
 // Connect устанавливает пул соединений с PostgresSQL на основе переданной конфигурации cfg.
 // Функция настраивает параметры пула (MaxConns, MinConns, MaxConnLifetime, MaxConnIdleTime),
 // выполняет подключение и проверку (Ping). При неудаче возвращается ошибка.
-func Connect(ctx context.Context, cfg config.Config) (*pgxpool.Pool, error) {
-	dsn := fmt.Sprintf("postgres://%s:%s@%s:%d/%s?sslmode=disable",
-		cfg.DBUser, cfg.DBPass, cfg.DBHost, cfg.DBPort, cfg.DBName)
-
-	pc, err := pgxpool.ParseConfig(dsn)
+func Connect(ctx context.Context) (*pgxpool.Pool, error) {
+	pc, err := pgxpool.ParseConfig(config.AppConfig().Postgres.DSN())
 	if err != nil {
 		return nil, err
 	}
 
-	pc.MaxConns = cfg.MaxConns
-	pc.MinConns = cfg.MinConns
-	pc.MaxConnLifetime = cfg.MaxConnLifetime
-	pc.MaxConnIdleTime = cfg.MaxConnIdle
+	pc.MaxConns = config.AppConfig().Postgres.PoolMaxConns()
+	pc.MinConns = config.AppConfig().Postgres.PoolMinConns()
+	pc.MaxConnLifetime = config.AppConfig().Postgres.PoolMaxConnLifetime()
+	pc.MaxConnIdleTime = config.AppConfig().Postgres.PoolMaxConnIdleTime()
 
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()

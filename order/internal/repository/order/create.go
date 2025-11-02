@@ -17,6 +17,7 @@ func (r *Repository) CreateOrder(ctx context.Context, order *model.Order) error 
 	repoOrder := converter.ToRepoOrder(order)
 
 	var paymentMethodStr *string
+
 	if repoOrder.PaymentMethod != nil {
 		str := repoOrder.PaymentMethod.String()
 		paymentMethodStr = &str

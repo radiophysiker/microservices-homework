@@ -6,12 +6,12 @@ all: false
 force-file-write: true
 formatter: goimports
 log-level: info
-structname: 'Mock{{.InterfaceName}}'
-pkgname: '{{.SrcPackageName}}'
+structname: "Mock{{.InterfaceName}}"
+pkgname: "{{.SrcPackageName}}"
 # Where to put generated mocks by default: next to the interface in a `mocks` subdir
 # and use common file naming (snake_case interface name)
-filename: 'mock_{{ snakecase .InterfaceName }}.go'
-dir: '{{.InterfaceDir}}/mocks'
+filename: "mock_{{ snakecase .InterfaceName }}.go"
+dir: "{{.InterfaceDir}}/mocks"
 recursive: false
 template: testify
 
@@ -33,5 +33,14 @@ packages:
       all: true
       recursive: true
   github.com/radiophysiker/microservices-homework/payment/internal/service:
+    config:
+      all: true
+  github.com/radiophysiker/microservices-homework/inventory/internal/config:
+    config:
+      all: true
+  github.com/radiophysiker/microservices-homework/order/internal/config:
+    config:
+      all: true
+  github.com/radiophysiker/microservices-homework/payment/internal/config:
     config:
       all: true

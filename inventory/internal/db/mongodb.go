@@ -13,34 +13,15 @@ import (
 	"github.com/radiophysiker/microservices-homework/inventory/internal/config"
 )
 
-// Соединяется с MongoDB и возвращает клиент и коллекцию
+// Connect - Соединяется с MongoDB и возвращает клиент и коллекцию
 // ctx - контекст
 // cfg - конфигурация
 // Возвращает клиент, коллекцию и ошибку
-func Connect(ctx context.Context, cfg config.Config) (*mongo.Client, *mongo.Collection, error) {
-	uri := fmt.Sprintf("mongodb://%s:%d", cfg.DBHost, cfg.DBPort)
-
-	clientOpts := options.Client().
-		ApplyURI(uri).
-		SetRetryWrites(true).
-		SetRetryReads(true).
-		SetConnectTimeout(10 * time.Second).
-		SetServerSelectionTimeout(10 * time.Second).
-		SetMaxPoolSize(20).
-		SetMinPoolSize(2)
-
-	if cfg.DBUser != "" && cfg.DBPass != "" {
-		clientOpts.SetAuth(options.Credential{
-			AuthSource: cfg.DBAuthDB,
-			Username:   cfg.DBUser,
-			Password:   cfg.DBPass,
-		})
-	}
-
+func Connect(ctx context.Context) (*mongo.Client, *mongo.Collection, error) {
 	ctxDial, cancelDial := context.WithTimeout(ctx, 15*time.Second)
 	defer cancelDial()
 
-	client, err := mongo.Connect(ctxDial, clientOpts)
+	client, err := mongo.Connect(ctxDial, options.Client().ApplyURI(config.AppConfig().Mongo.URI()))
 	if err != nil {
 		return nil, nil, fmt.Errorf("connect mongo: %w", err)
 	}
@@ -59,7 +40,7 @@ func Connect(ctx context.Context, cfg config.Config) (*mongo.Client, *mongo.Coll
 		return nil, nil, fmt.Errorf("ping mongo: %w", err)
 	}
 
-	db := client.Database(cfg.DBName)
+	db := client.Database(config.AppConfig().Mongo.DatabaseName())
 	collection := db.Collection("parts")
 
 	return client, collection, nil

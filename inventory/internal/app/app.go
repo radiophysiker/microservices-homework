@@ -16,11 +16,12 @@ import (
 	"github.com/radiophysiker/microservices-homework/inventory/internal/db"
 	partRepo "github.com/radiophysiker/microservices-homework/inventory/internal/repository/part"
 	partSvc "github.com/radiophysiker/microservices-homework/inventory/internal/service/part"
+	"github.com/radiophysiker/microservices-homework/platform/pkg/grpc/health"
 	pb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/inventory/v1"
 )
 
-func Run(ctx context.Context, cfg config.Config) error {
-	mongoClient, collection, err := db.Connect(ctx, cfg)
+func Run(ctx context.Context) error {
+	mongoClient, collection, err := db.Connect(ctx)
 	if err != nil {
 		return err
 	}
@@ -39,16 +40,17 @@ func Run(ctx context.Context, cfg config.Config) error {
 	// Создаем gRPC сервер
 	grpcServer := grpc.NewServer()
 	pb.RegisterInventoryServiceServer(grpcServer, api)
+	health.RegisterService(grpcServer)
 	reflection.Register(grpcServer)
 
 	// Запускаем gRPC сервер в отдельной горутине
 	go func() {
-		lis, err := net.Listen("tcp", cfg.GRPCAddr)
+		lis, err := net.Listen("tcp", config.AppConfig().InventoryGRPC.Address())
 		if err != nil {
 			log.Fatalf("failed to listen: %v", err)
 		}
 
-		log.Println("InventoryService gRPC server listening on", cfg.GRPCAddr)
+		log.Println("InventoryService gRPC server listening on", config.AppConfig().InventoryGRPC.Address())
 
 		if err := grpcServer.Serve(lis); err != nil {
 			log.Fatalf("failed to serve gRPC: %v", err)
