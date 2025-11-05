@@ -352,7 +352,7 @@ tasks:
         for mod in {{.MODULES}}; do
           if [ -d "$mod" ]; then
             echo "🧪 Тестируем модуль $mod"
-            cd "$mod" && go test -v ./... || ERR=1
+            go test -v -tags="!integration" $(go list ./$mod/... | grep -v -E '(/integration|/tests/integration|/integrationtests)') || ERR=1
             cd ..
           fi
         done
@@ -413,6 +413,16 @@ tasks:
       - task down-core
       - task down-inventory
       - task down-order
+
+  services:start:
+    desc: "Запускает все сервисы локально с переменными окружения"
+    cmds:
+      - "./scripts/start-services.sh"
+
+  services:stop:
+    desc: "Останавливает все локально запущенные сервисы"
+    cmds:
+      - "./scripts/stop-services.sh"
 
   grpcurl:install:
     desc: "Устанавливает grpcurl в каталог bin"

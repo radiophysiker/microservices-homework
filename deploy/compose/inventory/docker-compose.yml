@@ -15,7 +15,7 @@ services: # Здесь описываются контейнеры, необхо
       # Это нужно для сохранения данных между перезапусками контейнера
 
     ports:
-      - "${INVENTORY_DB_PORT}:27017"
+      - "${EXTERNAL_MONGO_PORT}:${MONGO_PORT}"
       # Пробрасываем внутренний порт MongoDB (27017) наружу на порт хоста
       # Это позволяет подключаться к Mongo из внешних инструментов
 
@@ -23,7 +23,7 @@ services: # Здесь описываются контейнеры, необхо
       test:
         [
           "CMD-SHELL",
-          "echo 'db.runCommand({ ping: 1 }).ok' | mongosh --quiet -u ${INVENTORY_DB_USER} -p ${INVENTORY_DB_PASSWORD} --authenticationDatabase ${INVENTORY_DB_AUTH_DB}",
+          "echo 'db.runCommand({ ping: 1 }).ok' | mongosh --quiet -u ${MONGO_INITDB_ROOT_USERNAME} -p ${MONGO_INITDB_ROOT_PASSWORD} --authenticationDatabase ${MONGO_AUTH_DB}",
         ]
       # Проверка готовности MongoDB: выполняем команду ping через mongosh с указанием логина и пароля
       # --quiet отключает лишний вывод, чтобы результатом был только "1" при успехе

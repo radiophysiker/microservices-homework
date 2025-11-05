@@ -4,16 +4,17 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
+	"go.uber.org/zap"
 
 	"github.com/radiophysiker/microservices-homework/order/internal/model"
 	"github.com/radiophysiker/microservices-homework/order/internal/repository/converter"
 	repoModel "github.com/radiophysiker/microservices-homework/order/internal/repository/model"
+	"github.com/radiophysiker/microservices-homework/platform/pkg/logger"
 )
 
 // UpdateOrder обновляет заказ и возвращает актуальное состояние
@@ -164,6 +165,6 @@ func (r *Repository) rollbackTx(ctx context.Context, tx pgx.Tx) {
 	}
 
 	if err := tx.Rollback(ctx); err != nil && !errors.Is(err, pgx.ErrTxClosed) {
-		log.Printf("failed to rollback transaction: %v\n", err)
+		logger.Error(ctx, "failed to rollback transaction", zap.Error(err))
 	}
 }

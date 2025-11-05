@@ -122,7 +122,7 @@ func (s *ConverterTestSuite) TestToServiceParts() {
 		{
 			name:     "nil_slice",
 			input:    nil,
-			expected: nil,
+			expected: []*model.Part{},
 		},
 		{
 			name:     "empty_slice",

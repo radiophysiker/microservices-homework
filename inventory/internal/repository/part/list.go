@@ -3,13 +3,14 @@ package part
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.uber.org/zap"
 
 	"github.com/radiophysiker/microservices-homework/inventory/internal/model"
 	"github.com/radiophysiker/microservices-homework/inventory/internal/repository/converter"
 	repoModel "github.com/radiophysiker/microservices-homework/inventory/internal/repository/model"
+	"github.com/radiophysiker/microservices-homework/platform/pkg/logger"
 )
 
 // ListParts возвращает список деталей с возможностью фильтрации
@@ -23,13 +24,18 @@ func (r *Repository) ListParts(ctx context.Context, filter *model.Filter) ([]*mo
 
 	defer func() {
 		if err := cursor.Close(ctx); err != nil {
-			log.Printf("failed to close cursor: %v", err)
+			logger.Error(ctx, "failed to close cursor", zap.Error(err))
 		}
 	}()
 
 	var repoParts []*repoModel.Part
 	if err := cursor.All(ctx, &repoParts); err != nil {
 		return nil, fmt.Errorf("failed to decode parts: %w", err)
+	}
+
+	// Гарантируем, что возвращаем пустой слайс вместо nil
+	if repoParts == nil {
+		repoParts = []*repoModel.Part{}
 	}
 
 	return converter.ToServiceParts(repoParts), nil
