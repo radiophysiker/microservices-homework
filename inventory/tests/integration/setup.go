@@ -20,13 +20,9 @@ func SetupTestData(ctx context.Context, collection *mongo.Collection, parts []*m
 		return nil
 	}
 
-	// Конвертируем service модели в repository модели и создаем BSON документы
-	// MongoDB driver по умолчанию конвертирует имена полей из PascalCase в lowercase
-	// Поэтому используем lowercase имена, которые соответствуют тому, как driver сериализует структуры
 	repoParts := make([]interface{}, 0, len(parts))
 	for _, part := range parts {
 		repoPart := converter.ToRepoPart(part)
-		// Устанавливаем временные метки, если они не установлены
 		if repoPart.CreatedAt.IsZero() {
 			repoPart.CreatedAt = time.Now()
 		}
@@ -34,9 +30,6 @@ func SetupTestData(ctx context.Context, collection *mongo.Collection, parts []*m
 			repoPart.UpdatedAt = time.Now()
 		}
 
-		// Сериализуем структуру в BSON, чтобы получить правильные имена полей
-		// Затем десериализуем обратно в bson.M для вставки
-		// Это гарантирует, что имена полей будут совпадать с тем, как driver их сериализует
 		bsonData, err := bson.Marshal(repoPart)
 		if err != nil {
 			return fmt.Errorf("failed to marshal part to BSON: %w", err)
@@ -50,18 +43,15 @@ func SetupTestData(ctx context.Context, collection *mongo.Collection, parts []*m
 		repoParts = append(repoParts, bsonDoc)
 	}
 
-	// Вставляем данные в коллекцию
 	result, err := collection.InsertMany(ctx, repoParts)
 	if err != nil {
 		return fmt.Errorf("failed to insert test data: %w", err)
 	}
 
-	// Проверяем, что данные действительно вставлены
 	if len(result.InsertedIDs) != len(parts) {
 		return fmt.Errorf("expected to insert %d parts, but inserted %d", len(parts), len(result.InsertedIDs))
 	}
 
-	// Проверяем количество документов в коллекции
 	count, err := collection.CountDocuments(ctx, bson.M{})
 	if err != nil {
 		return fmt.Errorf("failed to count documents: %w", err)
@@ -70,8 +60,6 @@ func SetupTestData(ctx context.Context, collection *mongo.Collection, parts []*m
 		return fmt.Errorf("expected %d documents in collection, but found %d", len(parts), count)
 	}
 
-	// Проверяем, что данные можно прочитать обратно
-	// Это убеждает нас, что данные вставлены правильно
 	for _, part := range parts {
 		var result bson.M
 		err := collection.FindOne(ctx, bson.M{"uuid": part.UUID}).Decode(&result)

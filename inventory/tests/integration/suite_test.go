@@ -26,19 +26,14 @@ func (s *InventoryTestSuite) SetupSuite() {
 	s.env, err = Setup(s.ctx)
 	s.Require().NoError(err, "Failed to setup test environment")
 
-	// Вставляем тестовые данные
 	testParts := GetTestParts()
 	err = SetupTestData(s.ctx, s.env.Collection, testParts)
 	s.Require().NoError(err, "Failed to setup test data")
-
-	// Небольшая задержка, чтобы убедиться, что данные записаны в MongoDB
-	time.Sleep(500 * time.Millisecond)
 }
 
 // TearDownSuite выполняется один раз после всех тестов
 func (s *InventoryTestSuite) TearDownSuite() {
 	if s.env != nil {
-		// Создаем новый контекст для teardown, так как основной контекст может быть отменен
 		teardownCtx, teardownCancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer teardownCancel()
 
