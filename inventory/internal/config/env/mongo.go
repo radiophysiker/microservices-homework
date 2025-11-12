@@ -22,8 +22,7 @@ type mongoConfig struct {
 func NewMongoConfig() (*mongoConfig, error) {
 	var raw mongoEnvConfig
 
-	err := env.Parse(&raw)
-	if err != nil {
+	if err := env.Parse(&raw); err != nil {
 		return nil, err
 	}
 
