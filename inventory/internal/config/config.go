@@ -1,48 +1,51 @@
 package config
 
 import (
-	"fmt"
 	"os"
-	"strconv"
+
+	"github.com/joho/godotenv"
+
+	"github.com/radiophysiker/microservices-homework/inventory/internal/config/env"
 )
 
-type Config struct {
-	// DB
-	DBHost   string
-	DBPort   int
-	DBUser   string
-	DBPass   string
-	DBName   string
-	DBAuthDB string
+var appConfig *config
 
-	// Ports
-	GRPCAddr string
+type config struct {
+	Logger        LoggerConfig
+	InventoryGRPC InventoryGRPCConfig
+	Mongo         MongoConfig
 }
 
-// Load загружает конфигурацию из переменных окружения и возвращает заполненную Config.
-// Возвращает ошибку, если какие-либо значения окружения имеют некорректный формат.
-func Load() (Config, error) {
-	port, err := strconv.Atoi(getEnv("INVENTORY_DB_PORT", "27017"))
+func Load(path ...string) error {
+	err := godotenv.Load(path...)
+	if err != nil && !os.IsNotExist(err) {
+		return err
+	}
+
+	loggerCfg, err := env.NewLoggerConfig()
 	if err != nil {
-		return Config{}, fmt.Errorf("invalid INVENTORY_DB_PORT: %w", err)
+		return err
 	}
 
-	return Config{
-		DBHost:   getEnv("INVENTORY_DB_HOST", "localhost"),
-		DBPort:   port,
-		DBUser:   getEnv("INVENTORY_DB_USER", "inventory-service-user"),
-		DBPass:   getEnv("INVENTORY_DB_PASSWORD", ""),
-		DBName:   getEnv("INVENTORY_DB_NAME", "inventory-service"),
-		DBAuthDB: getEnv("INVENTORY_DB_AUTH_DB", "admin"),
-		GRPCAddr: getEnv("INVENTORY_GRPC_ADDR", "localhost:50051"),
-	}, nil
+	inventoryGRPCCfg, err := env.NewInventoryGRPCConfig()
+	if err != nil {
+		return err
+	}
+
+	mongoCfg, err := env.NewMongoConfig()
+	if err != nil {
+		return err
+	}
+
+	appConfig = &config{
+		Logger:        loggerCfg,
+		InventoryGRPC: inventoryGRPCCfg,
+		Mongo:         mongoCfg,
+	}
+
+	return nil
 }
 
-// getEnv возвращает значение переменной окружения или значение по умолчанию
-func getEnv(key, defaultValue string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-
-	return defaultValue
+func AppConfig() *config {
+	return appConfig
 }

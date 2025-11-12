@@ -11,7 +11,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/olezhek28/microservices-course-olezhek-solution/platform/pkg/logger"
+	"github.com/radiophysiker/microservices-homework/platform/pkg/logger"
 )
 
 // shutdownTimeout по умолчанию, можно сделать параметром

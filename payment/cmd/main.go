@@ -1,33 +1,49 @@
 package main
 
 import (
-	"log"
-	"net"
+	"context"
+	"fmt"
+	"os/signal"
+	"syscall"
+	"time"
 
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
+	"go.uber.org/zap"
 
-	apiv1 "github.com/radiophysiker/microservices-homework/payment/internal/api/payment/v1"
-	paymentSvc "github.com/radiophysiker/microservices-homework/payment/internal/service/payment"
-	pb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/payment/v1"
+	"github.com/radiophysiker/microservices-homework/payment/internal/app"
+	"github.com/radiophysiker/microservices-homework/payment/internal/config"
+	"github.com/radiophysiker/microservices-homework/platform/pkg/closer"
+	"github.com/radiophysiker/microservices-homework/platform/pkg/logger"
 )
 
-func main() {
-	paymentService := paymentSvc.NewService()
-	api := apiv1.NewAPI(paymentService)
+const configPath = "./deploy/compose/payment/.env"
 
-	lis, err := net.Listen("tcp", "localhost:50052")
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+func main() {
+	if err := config.Load(configPath); err != nil {
+		panic(fmt.Errorf("failed to load config: %w", err))
 	}
 
-	s := grpc.NewServer()
-	pb.RegisterPaymentServiceServer(s, api)
-	reflection.Register(s)
+	appCtx, appCancel := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer appCancel()
+	defer gracefulShutdown()
 
-	log.Println("PaymentService listening on :50052")
+	closer.Configure(syscall.SIGINT, syscall.SIGTERM)
 
-	if err := s.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+	appInstance, err := app.New(appCtx)
+	if err != nil {
+		logger.SetNopLogger()
+		logger.Fatal(appCtx, "failed to create app", zap.Error(err))
+	}
+
+	if err := appInstance.Run(appCtx); err != nil {
+		logger.Fatal(appCtx, "failed to run app", zap.Error(err))
+	}
+}
+
+func gracefulShutdown() {
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	if err := closer.CloseAll(shutdownCtx); err != nil {
+		logger.Fatal(context.Background(), "failed to shutdown gracefully", zap.Error(err))
 	}
 }

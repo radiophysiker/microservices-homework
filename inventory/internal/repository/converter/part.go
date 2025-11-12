@@ -28,7 +28,7 @@ func ToServicePart(repoPart *repoModel.Part) *model.Part {
 // ToServiceParts конвертирует слайс моделей repository в слайс моделей service
 func ToServiceParts(repoParts []*repoModel.Part) []*model.Part {
 	if repoParts == nil {
-		return nil
+		return []*model.Part{}
 	}
 
 	serviceParts := make([]*model.Part, 0, len(repoParts))

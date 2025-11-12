@@ -3,13 +3,14 @@ package order
 import (
 	"context"
 	"fmt"
-	"log"
 	"time"
 
 	sq "github.com/Masterminds/squirrel"
+	"go.uber.org/zap"
 
 	"github.com/radiophysiker/microservices-homework/order/internal/model"
 	"github.com/radiophysiker/microservices-homework/order/internal/repository/converter"
+	"github.com/radiophysiker/microservices-homework/platform/pkg/logger"
 )
 
 // CreateOrder создает новый заказ
@@ -17,6 +18,7 @@ func (r *Repository) CreateOrder(ctx context.Context, order *model.Order) error 
 	repoOrder := converter.ToRepoOrder(order)
 
 	var paymentMethodStr *string
+
 	if repoOrder.PaymentMethod != nil {
 		str := repoOrder.PaymentMethod.String()
 		paymentMethodStr = &str
@@ -46,9 +48,9 @@ func (r *Repository) CreateOrder(ctx context.Context, order *model.Order) error 
 
 	defer func() {
 		if tx != nil {
-			err = tx.Rollback(ctx)
-			if err != nil {
-				log.Printf("failed to rollback tx: %v", err)
+			rollbackErr := tx.Rollback(ctx)
+			if rollbackErr != nil {
+				logger.Error(ctx, "failed to rollback tx", zap.Error(rollbackErr))
 			}
 		}
 	}()

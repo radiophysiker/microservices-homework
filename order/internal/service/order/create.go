@@ -30,6 +30,7 @@ func (s *Service) CreateOrder(ctx context.Context, userUUID uuid.UUID, partUUIDs
 	}
 
 	var totalPrice float64
+
 	items := make([]model.OrderItem, 0, len(parts))
 
 	for _, part := range parts {

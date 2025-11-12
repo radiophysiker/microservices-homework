@@ -30,7 +30,7 @@ func ToProtoPart(p *model.Part) *pb.Part {
 // ToProtoParts конвертирует слайс моделей service в слайс protobuf моделей
 func ToProtoParts(parts []*model.Part) []*pb.Part {
 	if parts == nil {
-		return nil
+		return []*pb.Part{}
 	}
 
 	protoParts := make([]*pb.Part, 0, len(parts))

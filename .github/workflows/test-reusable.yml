@@ -25,10 +25,16 @@ jobs:
           go-version: ${{ inputs.go-version }}
           cache: false # отключаем кэш go.sum в корне
 
+      - name: 🔧 Enable Go Workspaces
+        run: go work sync
+        env:
+          GOWORK: ${{ github.workspace }}/go.work
+
       - name: 📌 Install Task
         uses: arduino/setup-task@v2.0.0
 
       - name: 🧪 Run unit tests via Taskfile
         env:
           MODULES: ${{ inputs.modules }}
+          GOWORK: ${{ github.workspace }}/go.work
         run: task test

@@ -4,109 +4,191 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"net"
 	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
+	"go.uber.org/zap"
+	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/reflection"
 
-	v1 "github.com/radiophysiker/microservices-homework/order/internal/api/order/v1"
-	inventoryClient "github.com/radiophysiker/microservices-homework/order/internal/client/grpc/inventory/v1"
-	paymentClient "github.com/radiophysiker/microservices-homework/order/internal/client/grpc/payment/v1"
 	"github.com/radiophysiker/microservices-homework/order/internal/config"
-	"github.com/radiophysiker/microservices-homework/order/internal/db"
-	"github.com/radiophysiker/microservices-homework/order/internal/migrator"
-	orderRepo "github.com/radiophysiker/microservices-homework/order/internal/repository/order"
-	orderSvc "github.com/radiophysiker/microservices-homework/order/internal/service/order"
-	inventorypb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/inventory/v1"
+	"github.com/radiophysiker/microservices-homework/platform/pkg/closer"
+	"github.com/radiophysiker/microservices-homework/platform/pkg/grpc/health"
+	"github.com/radiophysiker/microservices-homework/platform/pkg/logger"
+	"github.com/radiophysiker/microservices-homework/platform/pkg/migrator"
 	orderpb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/order/v1"
-	paymentpb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/payment/v1"
 )
 
-func Run(ctx context.Context, cfg config.Config) error {
-	// Подключаемся к базе данных
-	pool, err := db.Connect(ctx, cfg)
+type App struct {
+	diContainer   *diContainer
+	grpcServer    *grpc.Server
+	httpServer    *http.Server
+	grpcListener  net.Listener
+	gatewayCancel context.CancelFunc
+}
+
+func New(ctx context.Context) (*App, error) {
+	a := &App{}
+
+	err := a.initDeps(ctx)
 	if err != nil {
-		return err
-	}
-	defer pool.Close()
-
-	// Выполняем миграции
-	if err := migrator.Run(ctx, pool, cfg.MigrationsDir); err != nil {
-		return err
+		return nil, err
 	}
 
-	// External gRPC deps
-	inventoryConn, err := grpc.NewClient(cfg.InventoryAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return err
-	}
+	return a, nil
+}
 
-	defer func() {
-		if err := inventoryConn.Close(); err != nil {
-			log.Printf("failed to close inventory connection: %v", err)
+func (a *App) Run(ctx context.Context) error {
+	parentCtx := ctx
+	g, ctx := errgroup.WithContext(ctx)
+
+	g.Go(func() error {
+		logger.Info(ctx, "OrderService gRPC listen", zap.String("addr", a.grpcListener.Addr().String()))
+
+		if err := a.grpcServer.Serve(a.grpcListener); err != nil && !errors.Is(err, grpc.ErrServerStopped) {
+			logger.Error(ctx, "gRPC serve failed", zap.Error(err))
+			return err
 		}
-	}()
 
-	paymentConn, err := grpc.NewClient(cfg.PaymentAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	if err != nil {
-		return err
+		return nil
+	})
+
+	g.Go(func() error {
+		logger.Info(ctx, "OrderService HTTP Gateway listen", zap.String("addr", a.httpServer.Addr))
+
+		if err := a.httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logger.Error(ctx, "HTTP serve failed", zap.Error(err))
+			return err
+		}
+
+		return nil
+	})
+
+	// Завершаем по ctx
+	g.Go(func() error {
+		<-ctx.Done()
+
+		shutdownCtx, cancel := context.WithTimeout(parentCtx, 30*time.Second)
+		defer cancel()
+		a.gatewayCancel()
+		a.grpcServer.GracefulStop()
+
+		return a.httpServer.Shutdown(shutdownCtx)
+	})
+
+	return g.Wait()
+}
+
+func (a *App) initDeps(ctx context.Context) error {
+	inits := []func(context.Context) error{
+		a.initDI,
+		a.initLogger,
+		a.initCloser,
+		a.initMigrations,
+		a.initGRPCServer,
+		a.initHTTPGateway,
 	}
 
-	defer func() {
-		if err := paymentConn.Close(); err != nil {
-			log.Printf("failed to close payment connection: %v", err)
-		}
-	}()
-
-	// Создаем зависимости
-	orderRepository := orderRepo.NewRepository(pool)
-	inventoryClientInstance := inventoryClient.NewClient(inventorypb.NewInventoryServiceClient(inventoryConn))
-	paymentClientInstance := paymentClient.NewClient(paymentpb.NewPaymentServiceClient(paymentConn))
-	orderService := orderSvc.NewService(orderRepository, inventoryClientInstance, paymentClientInstance)
-
-	// Создаем gRPC сервер для внутреннего использования
-	grpcServer := grpc.NewServer()
-	orderServiceServer := v1.NewAPI(orderService)
-	orderpb.RegisterOrderServiceServer(grpcServer, orderServiceServer)
-
-	// Запускаем gRPC сервер в отдельной горутине
-	go func() {
-		lis, err := net.Listen("tcp", cfg.GRPCAddr)
+	for _, f := range inits {
+		err := f(ctx)
 		if err != nil {
-			log.Fatalf("failed to listen: %v", err)
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (a *App) initDI(_ context.Context) error {
+	a.diContainer = newDiContainer()
+	return nil
+}
+
+func (a *App) initLogger(_ context.Context) error {
+	return logger.Init(
+		config.AppConfig().Logger.Level(),
+		config.AppConfig().Logger.AsJson(),
+	)
+}
+
+func (a *App) initCloser(_ context.Context) error {
+	closer.SetLogger(logger.Logger())
+	return nil
+}
+
+func (a *App) initMigrations(ctx context.Context) error {
+	pool, err := a.diContainer.Pool(ctx)
+	if err != nil {
+		return err
+	}
+
+	return migrator.Run(ctx, pool, config.AppConfig().Migrations.Directory())
+}
+
+func (a *App) initGRPCServer(ctx context.Context) error {
+	grpcAddr := config.AppConfig().OrderGRPC.Address()
+
+	lis, err := net.Listen("tcp", grpcAddr)
+	if err != nil {
+		return err
+	}
+
+	a.grpcListener = lis
+
+	closer.AddNamed("TCP listener", func(ctx context.Context) error {
+		lerr := lis.Close()
+		if lerr != nil && !errors.Is(lerr, net.ErrClosed) {
+			return lerr
 		}
 
-		log.Println("OrderService gRPC server listening on ", cfg.GRPCAddr)
+		return nil
+	})
 
-		if err := grpcServer.Serve(lis); err != nil {
-			log.Fatalf("failed to serve gRPC: %v", err)
-		}
-	}()
+	a.grpcServer = grpc.NewServer()
 
-	// Создаем gRPC Gateway для HTTP API
-	ctx, cancel := context.WithCancel(ctx)
+	closer.AddNamed("gRPC server", func(ctx context.Context) error {
+		a.grpcServer.GracefulStop()
+		return nil
+	})
+
+	reflection.Register(a.grpcServer)
+	health.RegisterService(a.grpcServer)
+
+	api, err := a.diContainer.API(ctx)
+	if err != nil {
+		return err
+	}
+
+	orderpb.RegisterOrderServiceServer(a.grpcServer, api)
+
+	return nil
+}
+
+func (a *App) initHTTPGateway(ctx context.Context) error {
+	gatewayCtx, gatewayCancel := context.WithCancel(ctx)
+	a.gatewayCancel = gatewayCancel
 
 	mux := runtime.NewServeMux()
 
-	// Регистрируем gRPC Gateway
-	err = orderpb.RegisterOrderServiceHandlerFromEndpoint(ctx, mux, cfg.GRPCAddr, []grpc.DialOption{
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	})
+	err := orderpb.RegisterOrderServiceHandlerFromEndpoint(
+		gatewayCtx,
+		mux,
+		config.AppConfig().OrderGRPC.Address(),
+		[]grpc.DialOption{
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+		},
+	)
 	if err != nil {
-		cancel()
 		return fmt.Errorf("failed to register gateway: %w", err)
 	}
 
-	// Запускаем HTTP сервер
-	httpServer := &http.Server{
-		Addr:              cfg.HTTPAddr,
+	httpAddr := config.AppConfig().OrderHTTP.Address()
+	a.httpServer = &http.Server{
+		Addr:              httpAddr,
 		Handler:           mux,
 		ReadTimeout:       60 * time.Second,
 		WriteTimeout:      60 * time.Second,
@@ -114,38 +196,14 @@ func Run(ctx context.Context, cfg config.Config) error {
 		IdleTimeout:       120 * time.Second,
 	}
 
-	// Graceful shutdown
-	go func() {
-		log.Println("OrderService HTTP Gateway listening on ", cfg.HTTPAddr)
+	closer.AddNamed("HTTP server", func(ctx context.Context) error {
+		a.gatewayCancel()
 
-		if err := httpServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Fatalf("failed to serve HTTP: %v", err)
-		}
-	}()
+		shutdownCtx, cancel := context.WithTimeout(ctx, 30*time.Second)
+		defer cancel()
 
-	// Ожидаем сигнал завершения
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
-
-	log.Println("Shutting down servers...")
-
-	// Отменяем контекст
-	cancel()
-
-	// Останавливаем HTTP сервер
-	httpCtx, httpCancel := context.WithTimeout(ctx, 30*time.Second)
-	defer httpCancel()
-
-	if err := httpServer.Shutdown(httpCtx); err != nil {
-		log.Printf("HTTP server shutdown error: %v", err)
-	}
-
-	// Останавливаем gRPC сервер
-	grpcServer.GracefulStop()
-
-	// Соединения уже закрыты через defer функции выше
-	log.Println("Servers stopped")
+		return a.httpServer.Shutdown(shutdownCtx)
+	})
 
 	return nil
 }

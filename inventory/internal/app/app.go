@@ -2,70 +2,123 @@ package app
 
 import (
 	"context"
-	"log"
+	"errors"
 	"net"
-	"os"
-	"os/signal"
-	"syscall"
 
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 
-	apiv1 "github.com/radiophysiker/microservices-homework/inventory/internal/api/inventory/v1"
 	"github.com/radiophysiker/microservices-homework/inventory/internal/config"
-	"github.com/radiophysiker/microservices-homework/inventory/internal/db"
-	partRepo "github.com/radiophysiker/microservices-homework/inventory/internal/repository/part"
-	partSvc "github.com/radiophysiker/microservices-homework/inventory/internal/service/part"
+	"github.com/radiophysiker/microservices-homework/platform/pkg/closer"
+	"github.com/radiophysiker/microservices-homework/platform/pkg/grpc/health"
+	"github.com/radiophysiker/microservices-homework/platform/pkg/logger"
 	pb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/inventory/v1"
 )
 
-func Run(ctx context.Context, cfg config.Config) error {
-	mongoClient, collection, err := db.Connect(ctx, cfg)
+type App struct {
+	diContainer *diContainer
+	grpcServer  *grpc.Server
+	listener    net.Listener
+}
+
+func New(ctx context.Context) (*App, error) {
+	a := &App{}
+
+	err := a.initDeps(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return a, nil
+}
+
+func (a *App) Run(ctx context.Context) error {
+	logger.Info(ctx, "InventoryService gRPC server listening", zap.String("address", a.listener.Addr().String()))
+
+	if err := a.grpcServer.Serve(a.listener); err != nil {
+		logger.Fatal(ctx, "failed to serve gRPC", zap.Error(err))
+	}
+
+	return nil
+}
+
+func (a *App) initDeps(ctx context.Context) error {
+	inits := []func(context.Context) error{
+		a.initDI,
+		a.initLogger,
+		a.initCloser,
+		a.initListener,
+		a.initGRPCServer,
+	}
+
+	for _, f := range inits {
+		err := f(ctx)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (a *App) initDI(_ context.Context) error {
+	a.diContainer = newDiContainer()
+	return nil
+}
+
+func (a *App) initLogger(_ context.Context) error {
+	return logger.Init(
+		config.AppConfig().Logger.Level(),
+		config.AppConfig().Logger.AsJson(),
+	)
+}
+
+func (a *App) initCloser(_ context.Context) error {
+	closer.SetLogger(logger.Logger())
+	return nil
+}
+
+func (a *App) initListener(_ context.Context) error {
+	addr := config.AppConfig().InventoryGRPC.Address()
+
+	lis, err := net.Listen("tcp", addr)
 	if err != nil {
 		return err
 	}
 
-	defer func() {
-		if err := mongoClient.Disconnect(ctx); err != nil {
-			log.Printf("Failed to disconnect from MongoDB: %v", err)
-		}
-	}()
+	a.listener = lis
 
-	// Создаем зависимости
-	partRepository := partRepo.NewRepository(collection)
-	partService := partSvc.NewService(partRepository)
-	api := apiv1.NewAPI(partService)
-
-	// Создаем gRPC сервер
-	grpcServer := grpc.NewServer()
-	pb.RegisterInventoryServiceServer(grpcServer, api)
-	reflection.Register(grpcServer)
-
-	// Запускаем gRPC сервер в отдельной горутине
-	go func() {
-		lis, err := net.Listen("tcp", cfg.GRPCAddr)
-		if err != nil {
-			log.Fatalf("failed to listen: %v", err)
+	closer.AddNamed("TCP listener", func(ctx context.Context) error {
+		lerr := lis.Close()
+		if lerr != nil && !errors.Is(lerr, net.ErrClosed) {
+			return lerr
 		}
 
-		log.Println("InventoryService gRPC server listening on", cfg.GRPCAddr)
+		return nil
+	})
 
-		if err := grpcServer.Serve(lis); err != nil {
-			log.Fatalf("failed to serve gRPC: %v", err)
-		}
-	}()
+	return nil
+}
 
-	// Ожидаем сигнал завершения
-	quit := make(chan os.Signal, 1)
-	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
-	<-quit
+func (a *App) initGRPCServer(ctx context.Context) error {
+	a.grpcServer = grpc.NewServer(grpc.Creds(insecure.NewCredentials()))
 
-	log.Println("Shutting down server...")
+	closer.AddNamed("gRPC server", func(ctx context.Context) error {
+		a.grpcServer.GracefulStop()
+		return nil
+	})
 
-	// Останавливаем gRPC сервер
-	grpcServer.GracefulStop()
+	reflection.Register(a.grpcServer)
+	health.RegisterService(a.grpcServer)
 
-	log.Println("Server stopped")
+	api, err := a.diContainer.API(ctx)
+	if err != nil {
+		return err
+	}
+
+	pb.RegisterInventoryServiceServer(a.grpcServer, api)
 
 	return nil
 }

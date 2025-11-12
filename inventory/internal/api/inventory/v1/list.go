@@ -21,5 +21,13 @@ func (a *API) ListParts(ctx context.Context, req *pb.ListPartsRequest) (*pb.List
 
 	protoParts := converter.ToProtoParts(parts)
 
-	return &pb.ListPartsResponse{Parts: protoParts}, nil
+	if protoParts == nil {
+		protoParts = make([]*pb.Part, 0)
+	}
+
+	resp := &pb.ListPartsResponse{
+		Parts: protoParts,
+	}
+
+	return resp, nil
 }
