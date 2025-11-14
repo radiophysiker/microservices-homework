@@ -25,7 +25,7 @@ func (s *ServiceTestSuite) SetupTest() {
 	s.repo = repomocks.NewMockOrderRepository(s.T())
 	s.inventoryClient = clientmocks.NewMockInventoryClient(s.T())
 	s.paymentClient = clientmocks.NewMockPaymentClient(s.T())
-	s.service = NewService(s.repo, s.inventoryClient, s.paymentClient)
+	s.service = NewService(s.repo, s.inventoryClient, s.paymentClient, nil)
 	s.ctx = context.Background()
 }
 

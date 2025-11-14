@@ -38,6 +38,7 @@ const (
 	StatusUnspecified Status = iota
 	StatusPendingPayment
 	StatusPaid
+	StatusAssembled
 	StatusCancelled
 )
 
@@ -48,6 +49,8 @@ func (s Status) String() string {
 		return "PENDING_PAYMENT"
 	case StatusPaid:
 		return "PAID"
+	case StatusAssembled:
+		return "ASSEMBLED"
 	case StatusCancelled:
 		return "CANCELLED"
 	default:

@@ -1,0 +1,3 @@
+networks:
+  microservices-net:
+    external: true

@@ -18,7 +18,7 @@ import (
 
 	"google.golang.org/protobuf/types/known/anypb"
 
-	v1 "github.com/radiophysiker/microservices-homework/week1/shared/pkg/proto/payment/v1"
+	v1 "github.com/radiophysiker/microservices-homework/shared/pkg/proto/payment/v1"
 )
 
 // ensure the imports are used

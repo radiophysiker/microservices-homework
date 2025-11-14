@@ -107,6 +107,8 @@ func toServiceStatus(s repoModel.Status) model.Status {
 		return model.StatusPendingPayment
 	case repoModel.StatusPaid:
 		return model.StatusPaid
+	case repoModel.StatusAssembled:
+		return model.StatusAssembled
 	case repoModel.StatusCancelled:
 		return model.StatusCancelled
 	default:
@@ -120,6 +122,8 @@ func toRepoStatus(s model.Status) repoModel.Status {
 		return repoModel.StatusPendingPayment
 	case model.StatusPaid:
 		return repoModel.StatusPaid
+	case model.StatusAssembled:
+		return repoModel.StatusAssembled
 	case model.StatusCancelled:
 		return repoModel.StatusCancelled
 	default:
@@ -155,6 +159,8 @@ func StringToOrderStatus(s string) repoModel.Status {
 		return repoModel.StatusPendingPayment
 	case "PAID":
 		return repoModel.StatusPaid
+	case "ASSEMBLED":
+		return repoModel.StatusAssembled
 	case "CANCELLED":
 		return repoModel.StatusCancelled
 	default:

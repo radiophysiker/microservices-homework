@@ -28,5 +28,3 @@ const (
 	// TestCollectionName имя коллекции для деталей
 	TestCollectionName = "parts"
 )
-
-

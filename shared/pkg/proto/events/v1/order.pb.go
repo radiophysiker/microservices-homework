@@ -8,7 +8,7 @@ package v1
 
 import (
 	_ "github.com/envoyproxy/protoc-gen-validate/validate"
-	v1 "github.com/radiophysiker/microservices-homework/week1/shared/pkg/proto/payment/v1"
+	v1 "github.com/radiophysiker/microservices-homework/shared/pkg/proto/payment/v1"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"

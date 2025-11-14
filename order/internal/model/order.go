@@ -22,6 +22,7 @@ const (
 	StatusUnspecified Status = iota
 	StatusPendingPayment
 	StatusPaid
+	StatusAssembled
 	StatusCancelled
 )
 

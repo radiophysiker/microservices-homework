@@ -68,6 +68,29 @@ func (a *App) Run(ctx context.Context) error {
 		return nil
 	})
 
+	g.Go(func() error {
+		orderConsumerService, err := a.diContainer.OrderConsumerService(ctx)
+		if err != nil {
+			logger.Error(ctx, "Failed to get OrderConsumerService", zap.Error(err))
+			return err
+		}
+
+		logger.Info(ctx, "Starting OrderAssembled consumer")
+
+		if err := orderConsumerService.RunConsumer(ctx); err != nil {
+			if errors.Is(err, context.Canceled) {
+				logger.Info(ctx, "OrderAssembled consumer stopped")
+				return nil
+			}
+
+			logger.Error(ctx, "OrderAssembled consumer error", zap.Error(err))
+
+			return err
+		}
+
+		return nil
+	})
+
 	// Завершаем по ctx
 	g.Go(func() error {
 		<-ctx.Done()
