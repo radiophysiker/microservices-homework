@@ -1,0 +1,42 @@
+syntax = "proto3";
+
+package events.v1;
+
+option go_package = "github.com/radiophysiker/microservices-homework/shared/pkg/proto/events/v1";
+
+import "validate/validate.proto";
+import "payment/v1/payment.proto";
+
+// Событие OrderPaid публикуется OrderService после успешной оплаты заказа
+message OrderPaid {
+  // Уникальный идентификатор события (для идемпотентности)
+  string event_uuid = 1 [(validate.rules).string.uuid = true, json_name = "event_uuid"];
+  
+  // Идентификатор оплаченного заказа
+  string order_uuid = 2 [(validate.rules).string.uuid = true, json_name = "order_uuid"];
+  
+  // Идентификатор пользователя
+  string user_uuid = 3 [(validate.rules).string.uuid = true, json_name = "user_uuid"];
+  
+  // Способ оплаты (в JSON сериализуется как строка, значение из PaymentMethod enum)
+  payment.v1.PaymentMethod payment_method = 4 [json_name = "payment_method"];
+  
+  // Идентификатор транзакции, сгенерированный в результате оплаты
+  string transaction_uuid = 5 [(validate.rules).string.uuid = true, json_name = "transaction_uuid"];
+}
+
+// Событие ShipAssembled публикуется AssemblyService после завершения сборки корабля
+message ShipAssembled {
+  // Уникальный идентификатор события (для идемпотентности)
+  string event_uuid = 1 [(validate.rules).string.uuid = true, json_name = "event_uuid"];
+  
+  // Идентификатор собранного заказа
+  string order_uuid = 2 [(validate.rules).string.uuid = true, json_name = "order_uuid"];
+  
+  // Идентификатор пользователя
+  string user_uuid = 3 [(validate.rules).string.uuid = true, json_name = "user_uuid"];
+  
+  // Время (в секундах), потраченное на сборку корабля
+  int64 build_time_sec = 4 [json_name = "build_time_sec"];
+}
+

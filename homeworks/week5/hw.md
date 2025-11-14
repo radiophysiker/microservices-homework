@@ -29,7 +29,7 @@
 4. В `OrderService`:
     - Реализовать **Kafka Producer**, который отправляет событие `OrderPaid` после успешной оплаты
         - Контракт описан в [`contracts/order_service_contracts.md`](contracts/order_service_contracts.md)
-    - Реализовать **Kafka Consumer**, который обрабатывает событие `ShipAssembled` и обновляет статус заказа на `COMPLETED`
+    - Реализовать **Kafka Consumer**, который обрабатывает событие `ShipAssembled` и обновляет статус заказа на `ASSEMBLED`
         - Контракт события описан в [`contracts/assembly_service_contracts.md`](contracts/assembly_service_contracts.md)
           
 5. Создать `NotificationService`:
