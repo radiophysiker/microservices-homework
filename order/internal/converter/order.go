@@ -83,6 +83,8 @@ func toOpenAPIStatus(s model.Status) orderv1.OrderStatus {
 		return orderv1.OrderStatusPENDINGPAYMENT
 	case model.StatusPaid:
 		return orderv1.OrderStatusPAID
+	case model.StatusAssembled:
+		return orderv1.OrderStatusASSEMBLED
 	case model.StatusCancelled:
 		return orderv1.OrderStatusCANCELLED
 	default:
@@ -161,6 +163,8 @@ func StatusToProtobuf(s model.Status) orderpb.OrderStatus {
 		return orderpb.OrderStatus_ORDER_STATUS_PENDING_PAYMENT
 	case model.StatusPaid:
 		return orderpb.OrderStatus_ORDER_STATUS_PAID
+	case model.StatusAssembled:
+		return orderpb.OrderStatus_ORDER_STATUS_ASSEMBLED
 	case model.StatusCancelled:
 		return orderpb.OrderStatus_ORDER_STATUS_CANCELLED
 	default:

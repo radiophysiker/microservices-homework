@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package common.v1;
+
+option go_package = "github.com/radiophysiker/microservices-homework/shared/pkg/proto/common/v1";
+
+import "google/protobuf/timestamp.proto";
+import "validate/validate.proto";
+
+// Метод уведомления пользователя
+message NotificationMethod {
+  string provider_name = 1 [(validate.rules).string.min_len = 1];  // Провайдер: `telegram`, `email`, `push` и т.д.
+  string target = 2 [(validate.rules).string.min_len = 1];         // Адрес/идентификатор назначения (email, чат-id)
+}
+
+// Основная информация пользователя
+message UserInfo {
+  string login = 1 [(validate.rules).string.min_len = 1];                                    // Логин
+  string email = 2 [(validate.rules).string.email = true];                                   // Email
+  repeated NotificationMethod notification_methods = 3; // Каналы уведомлений
+}
+
+// Пользователь
+message User {
+  string uuid = 1 [(validate.rules).string.uuid = true];  // UUID пользователя
+  UserInfo info = 2 [(validate.rules).message.required = true];  // Базовая информация
+  google.protobuf.Timestamp created_at = 3;          // Дата создания
+  google.protobuf.Timestamp updated_at = 4;          // Дата обновления
+}
+

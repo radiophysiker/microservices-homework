@@ -42,6 +42,7 @@ stop_service() {
 }
 
 # Останавливаем сервисы в обратном порядке
+stop_service iam
 stop_service notification
 stop_service assembly
 stop_service order

@@ -463,7 +463,7 @@ tasks:
         # Генерируем уникальные данные для пользователя
         TIMESTAMP=$(date +%s)
         USER_EMAIL="test-user-$TIMESTAMP@example.com"
-        USER_PASSWORD="$(openssl rand -hex 16)"
+        USER_PASSWORD="SecurePassword123!"
         
         echo "📝 Тест 1: Регистрация пользователя"
         REGISTER_RESPONSE=$({{.GRPCURL}} -plaintext -d "{\"info\":{\"info\":{\"email\":\"$USER_EMAIL\",\"login\":\"$USER_EMAIL\"},\"password\":\"$USER_PASSWORD\"}}" localhost:50053 user.v1.UserService/Register)

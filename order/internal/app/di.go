@@ -27,6 +27,9 @@ import (
 	kafkaConsumer "github.com/radiophysiker/microservices-homework/platform/pkg/kafka/consumer"
 	kafkaProducer "github.com/radiophysiker/microservices-homework/platform/pkg/kafka/producer"
 	"github.com/radiophysiker/microservices-homework/platform/pkg/logger"
+	grpcMiddleware "github.com/radiophysiker/microservices-homework/platform/pkg/middleware/grpc"
+	httpMiddleware "github.com/radiophysiker/microservices-homework/platform/pkg/middleware/http"
+	authpb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/auth/v1"
 	inventorypb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/inventory/v1"
 	paymentpb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/payment/v1"
 )
@@ -35,9 +38,11 @@ type diContainer struct {
 	pool            *pgxpool.Pool
 	inventoryConn   *grpc.ClientConn
 	paymentConn     *grpc.ClientConn
+	iamConn         *grpc.ClientConn
 	orderRepository repository.OrderRepository
 	inventoryClient clientGrpc.InventoryClient
 	paymentClient   clientGrpc.PaymentClient
+	iamClient       authpb.AuthServiceClient
 	orderService    service.OrderService
 	api             *apiv1.API
 
@@ -129,6 +134,39 @@ func (d *diContainer) PaymentConn(ctx context.Context) (*grpc.ClientConn, error)
 	}
 
 	return d.paymentConn, nil
+}
+
+func (d *diContainer) IAMConn(ctx context.Context) (*grpc.ClientConn, error) {
+	if d.iamConn == nil {
+		conn, err := grpc.NewClient(
+			config.AppConfig().IAMGRPC.IAMAddress(),
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("connect iam grpc: %w", err)
+		}
+
+		closer.AddNamed("iam gRPC connection", func(ctx context.Context) error {
+			return conn.Close()
+		})
+
+		d.iamConn = conn
+	}
+
+	return d.iamConn, nil
+}
+
+func (d *diContainer) IAMClient(ctx context.Context) (authpb.AuthServiceClient, error) {
+	if d.iamClient == nil {
+		conn, err := d.IAMConn(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		d.iamClient = authpb.NewAuthServiceClient(conn)
+	}
+
+	return d.iamClient, nil
 }
 
 func (d *diContainer) OrderRepository(ctx context.Context) (repository.OrderRepository, error) {
@@ -353,4 +391,22 @@ func (d *diContainer) API(ctx context.Context) (*apiv1.API, error) {
 	}
 
 	return d.api, nil
+}
+
+func (d *diContainer) AuthMiddleware(ctx context.Context) (*httpMiddleware.AuthMiddleware, error) {
+	iamClient, err := d.IAMClient(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return httpMiddleware.NewAuthMiddleware(iamClient), nil
+}
+
+func (d *diContainer) AuthInterceptor(ctx context.Context) (*grpcMiddleware.AuthInterceptor, error) {
+	iamClient, err := d.IAMClient(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return grpcMiddleware.NewAuthInterceptor(iamClient), nil
 }
