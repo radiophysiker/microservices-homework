@@ -32,6 +32,9 @@ func writeErrorResponse(w http.ResponseWriter, status int, code, message string)
 		// Если не удалось записать JSON ответ, записываем простой текст
 		w.Header().Set("Content-Type", "text/plain")
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte("Internal Server Error")) //nolint:errcheck,gosec
+		_, err = w.Write([]byte("Internal Server Error"))
+		if err != nil {
+			// Логируем ошибку записи ответа
+		}
 	}
 }

@@ -2,6 +2,8 @@ package order_consumer
 
 import (
 	"context"
+	"crypto/rand"
+	"math/big"
 	"time"
 
 	"github.com/google/uuid"
@@ -36,9 +38,21 @@ func (s *service) OrderHandler(ctx context.Context, msg kafka.Message) error {
 		zap.Int("payment_method", int(event.PaymentMethod)),
 	)
 
+	delaySeconds, err := getRandomDelay1to10()
+	if err != nil {
+		logger.Error(ctx, "Failed to get random delay",
+			zap.Error(err),
+		)
+
+		return err
+	}
+
+	delay := time.Duration(delaySeconds) * time.Second
+
 	logger.Info(ctx, "Starting ship assembly",
 		zap.String("order_uuid", event.OrderUUID.String()),
-		zap.Duration("delay", 10*time.Second),
+		zap.Duration("delay", delay),
+		zap.Int("delay_seconds", delaySeconds),
 	)
 
 	select {
@@ -49,7 +63,7 @@ func (s *service) OrderHandler(ctx context.Context, msg kafka.Message) error {
 		)
 
 		return ctx.Err()
-	case <-time.After(10 * time.Second):
+	case <-time.After(delay):
 	}
 
 	// Создаем событие ShipAssembled
@@ -57,7 +71,7 @@ func (s *service) OrderHandler(ctx context.Context, msg kafka.Message) error {
 		EventUUID:    uuid.New(),
 		OrderUUID:    event.OrderUUID,
 		UserUUID:     event.UserUUID,
-		BuildTimeSec: 10,
+		BuildTimeSec: int64(delaySeconds),
 	}
 
 	// Публикуем событие ShipAssembled
@@ -76,4 +90,13 @@ func (s *service) OrderHandler(ctx context.Context, msg kafka.Message) error {
 	)
 
 	return nil
+}
+
+func getRandomDelay1to10() (int, error) {
+	n, err := rand.Int(rand.Reader, big.NewInt(10))
+	if err != nil {
+		return 0, err
+	}
+
+	return int(n.Int64()) + 1, nil
 }

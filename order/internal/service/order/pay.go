@@ -5,11 +5,11 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"go.uber.org/zap"
 
 	"github.com/radiophysiker/microservices-homework/order/internal/converter"
 	"github.com/radiophysiker/microservices-homework/order/internal/model"
 	"github.com/radiophysiker/microservices-homework/platform/pkg/logger"
-	"go.uber.org/zap"
 )
 
 // PayOrder проводит оплату заказа

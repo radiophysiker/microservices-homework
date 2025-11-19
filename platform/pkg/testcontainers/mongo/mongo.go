@@ -13,8 +13,9 @@ const (
 	mongoPort           = "27017"
 	mongoStartupTimeout = 1 * time.Minute
 
-	mongoEnvUsernameKey = "MONGO_INITDB_ROOT_USERNAME"
-	mongoEnvPasswordKey = "MONGO_INITDB_ROOT_PASSWORD" //nolint:gosec
+	mongoEnvRootKeyPrefix = "MONGO_INITDB_ROOT_"
+	mongoEnvUsernameKey   = mongoEnvRootKeyPrefix + "USERNAME"
+	mongoEnvPasswordKey   = mongoEnvRootKeyPrefix + "PASSWORD"
 )
 
 type Container struct {

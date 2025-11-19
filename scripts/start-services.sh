@@ -83,7 +83,7 @@ start_service() {
 }
 
 # Проверяем, что .env файлы существуют
-if [ ! -f "$ROOT_DIR/deploy/compose/inventory/.env" ] || [ ! -f "$ROOT_DIR/deploy/compose/order/.env" ] || [ ! -f "$ROOT_DIR/deploy/compose/payment/.env" ]; then
+if [ ! -f "$ROOT_DIR/deploy/compose/inventory/.env" ] || [ ! -f "$ROOT_DIR/deploy/compose/order/.env" ] || [ ! -f "$ROOT_DIR/deploy/compose/payment/.env" ] || [ ! -f "$ROOT_DIR/deploy/compose/assembly/.env" ] || [ ! -f "$ROOT_DIR/deploy/compose/notification/.env" ]; then
   echo "📝 .env файлы не найдены. Генерирую..."
   cd "$ROOT_DIR"
   if command -v task &> /dev/null; then
@@ -99,6 +99,10 @@ sleep 1
 start_service payment
 sleep 1
 start_service order
+sleep 1
+start_service assembly
+sleep 1
+start_service notification
 
 echo
 echo "🎉 Все сервисы запущены!"

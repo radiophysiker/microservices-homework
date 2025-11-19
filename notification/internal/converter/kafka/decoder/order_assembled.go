@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 	"google.golang.org/protobuf/proto"
 
-	"github.com/radiophysiker/microservices-homework/order/internal/model"
+	"github.com/radiophysiker/microservices-homework/notification/internal/model"
 	eventspb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/events/v1"
 )
 
