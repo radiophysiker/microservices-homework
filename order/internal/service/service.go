@@ -19,3 +19,9 @@ type OrderService interface {
 	// CancelOrder отменяет заказ
 	CancelOrder(ctx context.Context, orderUUID uuid.UUID) (*model.Order, error)
 }
+
+// OrderConsumerService представляет интерфейс для consumer'а событий ShipAssembled
+type OrderConsumerService interface {
+	// RunConsumer запускает consumer для обработки событий ShipAssembled
+	RunConsumer(ctx context.Context) error
+}

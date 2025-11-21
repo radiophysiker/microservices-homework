@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/IBM/sarama"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
@@ -14,11 +15,18 @@ import (
 	inventoryClient "github.com/radiophysiker/microservices-homework/order/internal/client/grpc/inventory/v1"
 	paymentClient "github.com/radiophysiker/microservices-homework/order/internal/client/grpc/payment/v1"
 	"github.com/radiophysiker/microservices-homework/order/internal/config"
+	"github.com/radiophysiker/microservices-homework/order/internal/converter/kafka/decoder"
 	"github.com/radiophysiker/microservices-homework/order/internal/repository"
 	orderRepo "github.com/radiophysiker/microservices-homework/order/internal/repository/order"
 	"github.com/radiophysiker/microservices-homework/order/internal/service"
+	orderConsumerSvc "github.com/radiophysiker/microservices-homework/order/internal/service/consumer/order_consumer"
 	orderSvc "github.com/radiophysiker/microservices-homework/order/internal/service/order"
+	orderProducerSvc "github.com/radiophysiker/microservices-homework/order/internal/service/producer/order_producer"
 	"github.com/radiophysiker/microservices-homework/platform/pkg/closer"
+	"github.com/radiophysiker/microservices-homework/platform/pkg/kafka"
+	kafkaConsumer "github.com/radiophysiker/microservices-homework/platform/pkg/kafka/consumer"
+	kafkaProducer "github.com/radiophysiker/microservices-homework/platform/pkg/kafka/producer"
+	"github.com/radiophysiker/microservices-homework/platform/pkg/logger"
 	inventorypb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/inventory/v1"
 	paymentpb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/payment/v1"
 )
@@ -32,6 +40,15 @@ type diContainer struct {
 	paymentClient   clientGrpc.PaymentClient
 	orderService    service.OrderService
 	api             *apiv1.API
+
+	orderPaidSyncProducer sarama.SyncProducer
+	orderPaidProducer     kafka.Producer
+	orderProducerService  *orderProducerSvc.Service
+
+	orderAssembledConsumerGroup sarama.ConsumerGroup
+	orderAssembledConsumer      kafka.Consumer
+	orderAssembledDecoder       *decoder.Decoder
+	orderConsumerService        service.OrderConsumerService
 }
 
 func newDiContainer() *diContainer {
@@ -157,6 +174,62 @@ func (d *diContainer) PaymentClient(ctx context.Context) (clientGrpc.PaymentClie
 	return d.paymentClient, nil
 }
 
+func (d *diContainer) OrderPaidSyncProducer(ctx context.Context) (sarama.SyncProducer, error) {
+	if d.orderPaidSyncProducer == nil {
+		cfg := config.AppConfig()
+		producerCfg := cfg.OrderPaidProducer
+
+		producer, err := sarama.NewSyncProducer(
+			cfg.Kafka.Brokers(),
+			producerCfg.Config(),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("create sync producer: %w", err)
+		}
+
+		closer.AddNamed("OrderPaid sync producer", func(ctx context.Context) error {
+			return producer.Close()
+		})
+
+		d.orderPaidSyncProducer = producer
+	}
+
+	return d.orderPaidSyncProducer, nil
+}
+
+func (d *diContainer) OrderPaidProducer(ctx context.Context) (kafka.Producer, error) {
+	if d.orderPaidProducer == nil {
+		syncProducer, err := d.OrderPaidSyncProducer(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		cfg := config.AppConfig()
+		topic := cfg.OrderPaidProducer.Topic()
+
+		d.orderPaidProducer = kafkaProducer.NewProducer(
+			syncProducer,
+			topic,
+			logger.Logger(),
+		)
+	}
+
+	return d.orderPaidProducer, nil
+}
+
+func (d *diContainer) OrderProducerService(ctx context.Context) (*orderProducerSvc.Service, error) {
+	if d.orderProducerService == nil {
+		producer, err := d.OrderPaidProducer(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		d.orderProducerService = orderProducerSvc.NewService(producer)
+	}
+
+	return d.orderProducerService, nil
+}
+
 func (d *diContainer) OrderService(ctx context.Context) (service.OrderService, error) {
 	if d.orderService == nil {
 		orderRepo, err := d.OrderRepository(ctx)
@@ -174,14 +247,99 @@ func (d *diContainer) OrderService(ctx context.Context) (service.OrderService, e
 			return nil, err
 		}
 
+		orderProducer, err := d.OrderProducerService(ctx)
+		if err != nil {
+			return nil, err
+		}
+
 		d.orderService = orderSvc.NewService(
 			orderRepo,
 			inventoryClient,
 			paymentClient,
+			orderProducer,
 		)
 	}
 
 	return d.orderService, nil
+}
+
+func (d *diContainer) OrderAssembledConsumerGroup(ctx context.Context) (sarama.ConsumerGroup, error) {
+	if d.orderAssembledConsumerGroup == nil {
+		cfg := config.AppConfig()
+		consumerCfg := cfg.OrderAssembledConsumer
+
+		group, err := sarama.NewConsumerGroup(
+			cfg.Kafka.Brokers(),
+			consumerCfg.GroupID(),
+			consumerCfg.Config(),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("create consumer group: %w", err)
+		}
+
+		closer.AddNamed("OrderAssembled consumer group", func(ctx context.Context) error {
+			return group.Close()
+		})
+
+		d.orderAssembledConsumerGroup = group
+	}
+
+	return d.orderAssembledConsumerGroup, nil
+}
+
+func (d *diContainer) OrderAssembledConsumer(ctx context.Context) (kafka.Consumer, error) {
+	if d.orderAssembledConsumer == nil {
+		group, err := d.OrderAssembledConsumerGroup(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		cfg := config.AppConfig()
+		topics := []string{cfg.OrderAssembledConsumer.Topic()}
+
+		d.orderAssembledConsumer = kafkaConsumer.NewConsumer(
+			group,
+			topics,
+			logger.Logger(),
+		)
+	}
+
+	return d.orderAssembledConsumer, nil
+}
+
+func (d *diContainer) OrderAssembledDecoder(_ context.Context) (*decoder.Decoder, error) {
+	if d.orderAssembledDecoder == nil {
+		d.orderAssembledDecoder = decoder.NewOrderAssembledDecoder()
+	}
+
+	return d.orderAssembledDecoder, nil
+}
+
+func (d *diContainer) OrderConsumerService(ctx context.Context) (service.OrderConsumerService, error) {
+	if d.orderConsumerService == nil {
+		consumer, err := d.OrderAssembledConsumer(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		decoder, err := d.OrderAssembledDecoder(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		orderRepo, err := d.OrderRepository(ctx)
+		if err != nil {
+			return nil, err
+		}
+
+		d.orderConsumerService = orderConsumerSvc.NewService(
+			consumer,
+			decoder,
+			orderRepo,
+		)
+	}
+
+	return d.orderConsumerService, nil
 }
 
 func (d *diContainer) API(ctx context.Context) (*apiv1.API, error) {
