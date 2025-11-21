@@ -71,13 +71,13 @@ func (g *groupHandler) ConsumeClaim(session sarama.ConsumerGroupSession, claim s
 }
 
 func extractHeaders(headers []*sarama.RecordHeader) map[string][]byte {
-	result := make(map[string][]byte)
+	headersMap := make(map[string][]byte)
 
 	for _, h := range headers {
 		if h != nil && h.Key != nil {
-			result[string(h.Key)] = h.Value
+			headersMap[string(h.Key)] = h.Value
 		}
 	}
 
-	return result
+	return headersMap
 }

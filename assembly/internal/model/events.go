@@ -8,11 +8,11 @@ import (
 type PaymentMethod int
 
 const (
-	PaymentMethodUnspecified PaymentMethod = iota
-	PaymentMethodCard
-	PaymentMethodSBP
-	PaymentMethodCreditCard
-	PaymentMethodInvestorMoney
+	PaymentMethodUnspecified PaymentMethod = 0
+	PaymentMethodCard        PaymentMethod = 1
+	PaymentMethodSBP         PaymentMethod = 2
+	PaymentMethodCreditCard  PaymentMethod = 3
+	PaymentMethodInvestorMoney PaymentMethod = 4
 )
 
 // OrderPaid представляет событие об оплате заказа

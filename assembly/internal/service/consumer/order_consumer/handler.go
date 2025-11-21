@@ -38,7 +38,7 @@ func (s *service) OrderHandler(ctx context.Context, msg kafka.Message) error {
 		zap.Int("payment_method", int(event.PaymentMethod)),
 	)
 
-	delaySeconds, err := getRandomDelay1to10()
+	delay, err := getRandomDelaySeconds(1, 10)
 	if err != nil {
 		logger.Error(ctx, "Failed to get random delay",
 			zap.Error(err),
@@ -47,12 +47,9 @@ func (s *service) OrderHandler(ctx context.Context, msg kafka.Message) error {
 		return err
 	}
 
-	delay := time.Duration(delaySeconds) * time.Second
-
 	logger.Info(ctx, "Starting ship assembly",
 		zap.String("order_uuid", event.OrderUUID.String()),
 		zap.Duration("delay", delay),
-		zap.Int("delay_seconds", delaySeconds),
 	)
 
 	select {
@@ -71,7 +68,7 @@ func (s *service) OrderHandler(ctx context.Context, msg kafka.Message) error {
 		EventUUID:    uuid.New(),
 		OrderUUID:    event.OrderUUID,
 		UserUUID:     event.UserUUID,
-		BuildTimeSec: int64(delaySeconds),
+		BuildTimeSec: int64(delay.Seconds()),
 	}
 
 	// Публикуем событие ShipAssembled
@@ -92,11 +89,20 @@ func (s *service) OrderHandler(ctx context.Context, msg kafka.Message) error {
 	return nil
 }
 
-func getRandomDelay1to10() (int, error) {
-	n, err := rand.Int(rand.Reader, big.NewInt(10))
+// getRandomDelaySeconds возвращает случайную задержку в секундах в диапазоне [min, max]
+func getRandomDelaySeconds(min, max int) (time.Duration, error) {
+	if min > max {
+		return 0, nil
+	}
+
+	rangeSize := big.NewInt(int64(max - min + 1))
+
+	n, err := rand.Int(rand.Reader, rangeSize)
 	if err != nil {
 		return 0, err
 	}
 
-	return int(n.Int64()) + 1, nil
+	randomValue := int(n.Int64()) + min
+
+	return time.Duration(randomValue) * time.Second, nil
 }
