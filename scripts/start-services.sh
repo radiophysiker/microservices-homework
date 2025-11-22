@@ -35,6 +35,12 @@ start_service() {
     order)
       port="8080"
       ;;
+    notification)
+      port="8081"
+      ;;
+    iam)
+      port="50056"
+      ;;
   esac
   
   if [ -n "$port" ]; then
@@ -43,17 +49,59 @@ start_service() {
       echo "⚠️  Порт $port занят процессом $port_pid. Останавливаю..."
       kill "$port_pid" 2>/dev/null || kill -9 "$port_pid" 2>/dev/null || true
       sleep 1
+      # Проверяем еще раз и принудительно завершаем, если нужно
+      local still_running=$(lsof -ti :$port 2>/dev/null | head -1)
+      if [ -n "$still_running" ]; then
+        echo "⚠️  Принудительно завершаю процесс на порту $port..."
+        kill -9 "$still_running" 2>/dev/null || true
+        sleep 1
+      fi
     fi
   fi
   
   echo "🚀 Запускаю $service..."
+  
+  # Очищаем старый лог перед запуском
+  > "$log_file"
+  
+  # Запускаем сервис с перенаправлением вывода
+  # Важно: запускаем из корня проекта, чтобы пути к .env файлам были правильными
+  # Используем nohup для правильной работы в фоне
+  # Явно указываем рабочую директорию через -C опцию или через cd в подпроцессе
   cd "$ROOT_DIR"
-  nohup go run "$service_dir/cmd/main.go" > "$log_file" 2>&1 &
+  nohup go run "$service_dir/cmd/main.go" >> "$log_file" 2>&1 &
   local pid=$!
   echo $pid > "$pid_file"
   
-  # Ждем немного, чтобы процесс успел запуститься
-  sleep 3
+  # Даем процессу немного времени на запуск и запись ошибок в лог
+  sleep 2
+  
+  # Проверяем, что процесс еще работает
+  if ! ps -p "$pid" > /dev/null 2>&1; then
+    echo "❌ $service завершился сразу после запуска. Проверьте лог: $log_file"
+    # Ждем еще немного, чтобы убедиться, что все данные записались в лог
+    sleep 1
+    if [ -s "$log_file" ]; then
+      echo "Последние строки лога:"
+      tail -30 "$log_file"
+    else
+      echo "⚠️  Лог файл пуст - возможно, ошибка при загрузке конфигурации или инициализации"
+      echo "💡 Попробуйте запустить сервис вручную: cd $ROOT_DIR && go run $service_dir/cmd/main.go"
+    fi
+    rm -f "$pid_file"
+    return 1
+  fi
+  
+  # Ждем еще немного, чтобы процесс успел полностью запуститься
+  # IAM требует больше времени для подключения к БД и выполнения миграций
+  if [ "$service" = "iam" ]; then
+    sleep 6
+  elif [ "$service" = "order" ]; then
+    # Order также требует времени для подключения к БД
+    sleep 3
+  else
+    sleep 1
+  fi
   
   # Проверяем, что порт слушается (более надежный способ проверки)
   if [ -n "$port" ]; then
@@ -83,7 +131,7 @@ start_service() {
 }
 
 # Проверяем, что .env файлы существуют
-if [ ! -f "$ROOT_DIR/deploy/compose/inventory/.env" ] || [ ! -f "$ROOT_DIR/deploy/compose/order/.env" ] || [ ! -f "$ROOT_DIR/deploy/compose/payment/.env" ] || [ ! -f "$ROOT_DIR/deploy/compose/assembly/.env" ] || [ ! -f "$ROOT_DIR/deploy/compose/notification/.env" ]; then
+if [ ! -f "$ROOT_DIR/deploy/compose/inventory/.env" ] || [ ! -f "$ROOT_DIR/deploy/compose/order/.env" ] || [ ! -f "$ROOT_DIR/deploy/compose/payment/.env" ] || [ ! -f "$ROOT_DIR/deploy/compose/assembly/.env" ] || [ ! -f "$ROOT_DIR/deploy/compose/notification/.env" ] || [ ! -f "$ROOT_DIR/deploy/compose/iam/.env" ]; then
   echo "📝 .env файлы не найдены. Генерирую..."
   cd "$ROOT_DIR"
   if command -v task &> /dev/null; then
@@ -94,17 +142,27 @@ if [ ! -f "$ROOT_DIR/deploy/compose/inventory/.env" ] || [ ! -f "$ROOT_DIR/deplo
 fi
 
 # Запускаем сервисы в правильном порядке
-start_service inventory
+# Используем переменную для отслеживания ошибок, но не останавливаем скрипт при ошибке одного сервиса
+ERRORS=0
+
+start_service inventory || ERRORS=$((ERRORS + 1))
 sleep 1
-start_service payment
+start_service payment || ERRORS=$((ERRORS + 1))
 sleep 1
-start_service order
+start_service order || ERRORS=$((ERRORS + 1))
 sleep 1
-start_service assembly
+start_service assembly || ERRORS=$((ERRORS + 1))
 sleep 1
-start_service notification
+start_service notification || ERRORS=$((ERRORS + 1))
+sleep 1
+start_service iam || ERRORS=$((ERRORS + 1))
 
 echo
-echo "🎉 Все сервисы запущены!"
+if [ $ERRORS -eq 0 ]; then
+  echo "🎉 Все сервисы запущены!"
+else
+  echo "⚠️  Некоторые сервисы не запустились (ошибок: $ERRORS)"
+  echo "💡 Проверьте логи в /tmp/*.log для деталей"
+fi
 echo "Для остановки используйте: ./scripts/stop-services.sh"
 

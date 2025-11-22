@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package auth.v1;
+
+option go_package = "github.com/radiophysiker/microservices-homework/shared/pkg/proto/auth/v1";
+
+import "common/v1/session.proto";
+import "common/v1/user.proto";
+import "validate/validate.proto";
+
+// Сервис для аутентификации и авторизации
+service AuthService {
+  // Вход пользователя
+  rpc Login(LoginRequest) returns (LoginResponse);
+
+  // Получение информации о текущем пользователе
+  rpc Whoami(WhoamiRequest) returns (WhoamiResponse);
+}
+
+// Запрос на вход пользователя
+message LoginRequest {
+  string login = 1 [(validate.rules).string.min_len = 1];     // Логин пользователя
+  string password = 2 [(validate.rules).string.min_len = 1];  // Пароль пользователя
+}
+
+// Ответ на запрос входа
+message LoginResponse {
+  string session_uuid = 1 [(validate.rules).string.uuid = true];  // UUID активной сессии
+}
+
+// Запрос на получение информации о текущем пользователе
+message WhoamiRequest {
+  string session_uuid = 1 [(validate.rules).string.uuid = true];  // UUID активной сессии
+}
+
+// Ответ с информацией о текущем пользователе
+message WhoamiResponse {
+  common.v1.Session session = 1 [(validate.rules).message.required = true];  // Информация о текущей сессии
+  common.v1.User user = 2 [(validate.rules).message.required = true];       // Владелец текущей сессии
+}

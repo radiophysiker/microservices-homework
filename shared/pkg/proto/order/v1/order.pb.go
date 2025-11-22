@@ -32,6 +32,7 @@ const (
 	OrderStatus_ORDER_STATUS_PENDING_PAYMENT OrderStatus = 1
 	OrderStatus_ORDER_STATUS_PAID            OrderStatus = 2
 	OrderStatus_ORDER_STATUS_CANCELLED       OrderStatus = 3
+	OrderStatus_ORDER_STATUS_ASSEMBLED       OrderStatus = 4
 )
 
 // Enum value maps for OrderStatus.
@@ -41,12 +42,14 @@ var (
 		1: "ORDER_STATUS_PENDING_PAYMENT",
 		2: "ORDER_STATUS_PAID",
 		3: "ORDER_STATUS_CANCELLED",
+		4: "ORDER_STATUS_ASSEMBLED",
 	}
 	OrderStatus_value = map[string]int32{
 		"ORDER_STATUS_UNSPECIFIED":     0,
 		"ORDER_STATUS_PENDING_PAYMENT": 1,
 		"ORDER_STATUS_PAID":            2,
 		"ORDER_STATUS_CANCELLED":       3,
+		"ORDER_STATUS_ASSEMBLED":       4,
 	}
 )
 
@@ -566,12 +569,13 @@ const file_order_v1_order_proto_rawDesc = "" +
 	"\x12CancelOrderRequest\x12(\n" +
 	"\n" +
 	"order_uuid\x18\x01 \x01(\tB\b\xfaB\x05r\x03\xb0\x01\x01R\n" +
-	"order_uuid*\x80\x01\n" +
+	"order_uuid*\x9c\x01\n" +
 	"\vOrderStatus\x12\x1c\n" +
 	"\x18ORDER_STATUS_UNSPECIFIED\x10\x00\x12 \n" +
 	"\x1cORDER_STATUS_PENDING_PAYMENT\x10\x01\x12\x15\n" +
 	"\x11ORDER_STATUS_PAID\x10\x02\x12\x1a\n" +
-	"\x16ORDER_STATUS_CANCELLED\x10\x03*t\n" +
+	"\x16ORDER_STATUS_CANCELLED\x10\x03\x12\x1a\n" +
+	"\x16ORDER_STATUS_ASSEMBLED\x10\x04*t\n" +
 	"\rPaymentMethod\x12\x1e\n" +
 	"\x1aPAYMENT_METHOD_UNSPECIFIED\x10\x00\x12\v\n" +
 	"\aUNKNOWN\x10\x01\x12\b\n" +

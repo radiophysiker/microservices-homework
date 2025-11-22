@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/radiophysiker/microservices-homework/order/internal/model"
+	grpcMiddleware "github.com/radiophysiker/microservices-homework/platform/pkg/middleware/grpc"
 	inventorypb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/inventory/v1"
 )
 
@@ -22,6 +23,8 @@ func NewClient(inventoryClient inventorypb.InventoryServiceClient) *Client {
 
 // ListParts возвращает список деталей по UUID
 func (c *Client) ListParts(ctx context.Context, partUUIDs []string) ([]*model.Part, error) {
+	ctx = grpcMiddleware.ForwardSessionUUIDToGRPC(ctx)
+
 	resp, err := c.inventoryClient.ListParts(ctx, &inventorypb.ListPartsRequest{
 		Filter: &inventorypb.PartsFilter{
 			Uuids: partUUIDs,

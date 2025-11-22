@@ -255,7 +255,8 @@
         "ORDER_STATUS_UNSPECIFIED",
         "ORDER_STATUS_PENDING_PAYMENT",
         "ORDER_STATUS_PAID",
-        "ORDER_STATUS_CANCELLED"
+        "ORDER_STATUS_CANCELLED",
+        "ORDER_STATUS_ASSEMBLED"
       ],
       "default": "ORDER_STATUS_UNSPECIFIED",
       "title": "Статусы заказа"

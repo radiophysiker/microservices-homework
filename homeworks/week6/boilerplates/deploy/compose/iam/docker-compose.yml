@@ -1,5 +1,4 @@
 services: # Раздел, в котором описываются все контейнеры, необходимые для IAM-сервиса
-
   postgres-iam: # Сервис с PostgreSQL, используемый IAM-сервисом для хранения данных пользователей
     image: postgres:17.0-alpine3.20 # Используем официальный образ PostgreSQL 17 на базе Alpine — он лёгкий и быстрый
     container_name: postgres-iam # Устанавливаем читаемое имя контейнера — удобно при отладке и работе в CLI
@@ -18,7 +17,7 @@ services: # Раздел, в котором описываются все кон
       # Это нужно, чтобы можно было подключиться к базе извне, например, из DBeaver или другого сервиса
 
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}" ]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       # Проверяем готовность базы с помощью встроенной команды pg_isready, используя логин из .env
       interval: 10s # Периодичность проверок — каждые 10 секунд
       timeout: 5s # Таймаут на выполнение одной проверки
@@ -39,12 +38,12 @@ services: # Раздел, в котором описываются все кон
       - .env
 
     ports:
-      - "${EXTERNAL_REDIS_PORT}:6379"
+      - "${REDIS_PORT}:6379"
       # Пробрасываем внутренний порт Redis на внешний, указанный в .env (например, 6380)
       # Это позволяет IAM-сервису обращаться к Redis по порту хоста
 
     healthcheck:
-      test: [ "CMD", "redis-cli", "ping" ]
+      test: ["CMD", "redis-cli", "ping"]
       # Проверка: если Redis отвечает на команду ping, значит он жив
       interval: 10s # Проверяем Redis каждые 10 секунд
       timeout: 5s # Ждём ответа до 5 секунд

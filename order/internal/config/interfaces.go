@@ -27,6 +27,10 @@ type PaymentGRPCConfig interface {
 	PaymentAddress() string
 }
 
+type IAMGRPCConfig interface {
+	IAMAddress() string
+}
+
 type OrderGRPCConfig interface {
 	Address() string
 }

@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	grpcMiddleware "github.com/radiophysiker/microservices-homework/platform/pkg/middleware/grpc"
 	paymentpb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/payment/v1"
 )
 
@@ -21,6 +22,8 @@ func NewClient(paymentClient paymentpb.PaymentServiceClient) *Client {
 
 // PayOrder проводит оплату заказа
 func (c *Client) PayOrder(ctx context.Context, userUUID, orderUUID string, paymentMethod paymentpb.PaymentMethod) (string, error) {
+	ctx = grpcMiddleware.ForwardSessionUUIDToGRPC(ctx)
+
 	resp, err := c.paymentClient.PayOrder(ctx, &paymentpb.PayOrderRequest{
 		UserUuid:      userUUID,
 		OrderUuid:     orderUUID,

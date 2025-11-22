@@ -1,0 +1,143 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "user/v1/user.proto",
+    "version": "version not set"
+  },
+  "tags": [
+    {
+      "name": "UserService"
+    }
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {},
+  "definitions": {
+    "protobufAny": {
+      "type": "object",
+      "properties": {
+        "@type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": {}
+    },
+    "rpcStatus": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "message": {
+          "type": "string"
+        },
+        "details": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/protobufAny"
+          }
+        }
+      }
+    },
+    "v1GetUserResponse": {
+      "type": "object",
+      "properties": {
+        "user": {
+          "$ref": "#/definitions/v1User",
+          "title": "Пользователь"
+        }
+      },
+      "title": "Ответ с информацией о пользователе"
+    },
+    "v1NotificationMethod": {
+      "type": "object",
+      "properties": {
+        "providerName": {
+          "type": "string",
+          "description": "Провайдер: `telegram`, `email`, `push` и т.д."
+        },
+        "target": {
+          "type": "string",
+          "title": "Адрес/идентификатор назначения (email, чат-id)"
+        }
+      },
+      "title": "Метод уведомления пользователя"
+    },
+    "v1RegisterResponse": {
+      "type": "object",
+      "properties": {
+        "userUuid": {
+          "type": "string",
+          "title": "UUID созданного пользователя"
+        }
+      },
+      "title": "Ответ на запрос регистрации"
+    },
+    "v1User": {
+      "type": "object",
+      "properties": {
+        "uuid": {
+          "type": "string",
+          "title": "UUID пользователя"
+        },
+        "info": {
+          "$ref": "#/definitions/v1UserInfo",
+          "title": "Базовая информация"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "title": "Дата создания"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "title": "Дата обновления"
+        }
+      },
+      "title": "Пользователь"
+    },
+    "v1UserInfo": {
+      "type": "object",
+      "properties": {
+        "login": {
+          "type": "string",
+          "title": "Логин"
+        },
+        "email": {
+          "type": "string",
+          "title": "Email"
+        },
+        "notificationMethods": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/v1NotificationMethod"
+          },
+          "title": "Каналы уведомлений"
+        }
+      },
+      "title": "Основная информация пользователя"
+    },
+    "v1UserRegistrationInfo": {
+      "type": "object",
+      "properties": {
+        "info": {
+          "$ref": "#/definitions/v1UserInfo",
+          "title": "Основная информация пользователя"
+        },
+        "password": {
+          "type": "string",
+          "title": "Пароль"
+        }
+      },
+      "title": "Данные для регистрации пользователя"
+    }
+  }
+}

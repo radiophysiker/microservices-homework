@@ -13,12 +13,15 @@ import (
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
+	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
 
 	"github.com/radiophysiker/microservices-homework/order/internal/config"
 	"github.com/radiophysiker/microservices-homework/platform/pkg/closer"
 	"github.com/radiophysiker/microservices-homework/platform/pkg/grpc/health"
 	"github.com/radiophysiker/microservices-homework/platform/pkg/logger"
+	grpcMiddleware "github.com/radiophysiker/microservices-homework/platform/pkg/middleware/grpc"
+	httpMiddleware "github.com/radiophysiker/microservices-homework/platform/pkg/middleware/http"
 	"github.com/radiophysiker/microservices-homework/platform/pkg/migrator"
 	orderpb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/order/v1"
 )
@@ -171,7 +174,14 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 		return nil
 	})
 
-	a.grpcServer = grpc.NewServer()
+	authInterceptor, err := a.diContainer.AuthInterceptor(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create auth interceptor: %w", err)
+	}
+
+	a.grpcServer = grpc.NewServer(
+		grpc.UnaryInterceptor(authInterceptor.Unary()),
+	)
 
 	closer.AddNamed("gRPC server", func(ctx context.Context) error {
 		a.grpcServer.GracefulStop()
@@ -195,7 +205,17 @@ func (a *App) initHTTPGateway(ctx context.Context) error {
 	gatewayCtx, gatewayCancel := context.WithCancel(ctx)
 	a.gatewayCancel = gatewayCancel
 
-	mux := runtime.NewServeMux()
+	mux := runtime.NewServeMux(
+		runtime.WithMetadata(func(ctx context.Context, req *http.Request) metadata.MD {
+			md := metadata.MD{}
+
+			if sessionUUID, ok := grpcMiddleware.GetSessionUUIDFromContext(ctx); ok && sessionUUID != "" {
+				md.Set(grpcMiddleware.SessionUUIDMetadataKey, sessionUUID)
+			}
+
+			return md
+		}),
+	)
 
 	err := orderpb.RegisterOrderServiceHandlerFromEndpoint(
 		gatewayCtx,
@@ -209,10 +229,19 @@ func (a *App) initHTTPGateway(ctx context.Context) error {
 		return fmt.Errorf("failed to register gateway: %w", err)
 	}
 
+	var authMiddleware *httpMiddleware.AuthMiddleware
+
+	authMiddleware, err = a.diContainer.AuthMiddleware(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to create auth middleware: %w", err)
+	}
+
+	handler := authMiddleware.Handle(mux)
+
 	httpAddr := config.AppConfig().OrderHTTP.Address()
 	a.httpServer = &http.Server{
 		Addr:              httpAddr,
-		Handler:           mux,
+		Handler:           handler,
 		ReadTimeout:       60 * time.Second,
 		WriteTimeout:      60 * time.Second,
 		ReadHeaderTimeout: 60 * time.Second,

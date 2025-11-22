@@ -26,6 +26,7 @@ func NewAuthMiddleware(iamClient IAMClient) *AuthMiddleware {
 	}
 }
 
+// client (X-Session-Uuid) -> auth middleware (add session_uuid in ctx (incomming)) -> order api (outgoing)-> auth interceptor ->inventory
 // Handle обрабатывает HTTP запрос с аутентификацией
 func (m *AuthMiddleware) Handle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

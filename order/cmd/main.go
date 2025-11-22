@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 	"os/signal"
 	"syscall"
 	"time"
@@ -30,11 +31,13 @@ func main() {
 
 	appInstance, err := app.New(appCtx)
 	if err != nil {
+		fmt.Fprintf(os.Stderr, "❌ Failed to create app: %v\n", err)
 		logger.SetNopLogger()
 		logger.Fatal(appCtx, "failed to create app", zap.Error(err))
 	}
 
 	if err := appInstance.Run(appCtx); err != nil {
+		fmt.Fprintf(os.Stderr, "❌ Failed to run app: %v\n", err)
 		logger.Fatal(appCtx, "failed to run app", zap.Error(err))
 	}
 }

@@ -7,6 +7,7 @@ replace github.com/radiophysiker/microservices-homework/shared => ../shared
 replace github.com/radiophysiker/microservices-homework/platform => ../platform
 
 require (
+	github.com/IBM/sarama v1.46.3
 	github.com/Masterminds/squirrel v1.5.4
 	github.com/caarlos0/env/v11 v11.3.1
 	github.com/google/uuid v1.6.0
@@ -23,7 +24,6 @@ require (
 )
 
 require (
-	github.com/IBM/sarama v1.46.3 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dlclark/regexp2 v1.11.5 // indirect
 	github.com/eapache/go-resiliency v1.7.0 // indirect
@@ -55,6 +55,7 @@ require (
 	github.com/mfridman/interpolate v0.0.2 // indirect
 	github.com/ogen-go/ogen v1.16.0 // indirect
 	github.com/pierrec/lz4/v4 v4.1.22 // indirect
+	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/pressly/goose/v3 v3.26.0 // indirect
 	github.com/rcrowley/go-metrics v0.0.0-20250401214520-65e299d6c5c9 // indirect

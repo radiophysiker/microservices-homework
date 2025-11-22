@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package user.v1;
+
+option go_package = "github.com/radiophysiker/microservices-homework/shared/pkg/proto/user/v1";
+
+import "common/v1/user.proto";
+import "validate/validate.proto";
+
+// Сервис для управления пользователями
+service UserService {
+  // Регистрация нового пользователя
+  rpc Register(RegisterRequest) returns (RegisterResponse);
+
+  // Получение информации о пользователе
+  rpc GetUser(GetUserRequest) returns (GetUserResponse);
+}
+
+// Данные для регистрации пользователя
+message UserRegistrationInfo {
+  common.v1.UserInfo info = 1 [(validate.rules).message.required = true];  // Основная информация пользователя
+  string password = 2 [(validate.rules).string.min_len = 1];               // Пароль
+}
+
+// Запрос на регистрацию нового пользователя
+message RegisterRequest {
+  UserRegistrationInfo info = 1 [(validate.rules).message.required = true];  // Данные для регистрации
+}
+
+// Ответ на запрос регистрации
+message RegisterResponse {
+  string user_uuid = 1 [(validate.rules).string.uuid = true];  // UUID созданного пользователя
+}
+
+// Запрос на получение информации о пользователе
+message GetUserRequest {
+  string user_uuid = 1 [(validate.rules).string.uuid = true];  // UUID пользователя
+}
+
+// Ответ с информацией о пользователе
+message GetUserResponse {
+  common.v1.User user = 1 [(validate.rules).message.required = true];  // Пользователь
+}
