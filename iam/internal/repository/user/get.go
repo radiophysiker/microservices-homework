@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 
+	sq "github.com/Masterminds/squirrel"
 	"github.com/jackc/pgx/v5"
 
 	"github.com/radiophysiker/microservices-homework/iam/internal/model"
@@ -14,47 +15,41 @@ import (
 
 // GetByUUID возвращает пользователя по UUID.
 func (r *Repository) GetByUUID(ctx context.Context, userUUID string) (*model.User, error) {
-	const query = `
-SELECT uuid, login, email, password_hash, notification_methods, created_at, updated_at
-FROM users
-WHERE uuid = $1
-LIMIT 1;
-`
+	query, args, err := buildGetUserQuery(sq.Eq{"uuid": userUUID})
+	if err != nil {
+		return nil, fmt.Errorf("build get user by uuid query: %w", err)
+	}
 
-	return r.get(ctx, query, userUUID)
+	return r.get(ctx, query, args...)
 }
 
 // GetByLogin возвращает пользователя по логину.
 func (r *Repository) GetByLogin(ctx context.Context, login string) (*model.User, error) {
-	const query = `
-SELECT uuid, login, email, password_hash, notification_methods, created_at, updated_at
-FROM users
-WHERE login = $1
-LIMIT 1;
-`
+	query, args, err := buildGetUserQuery(sq.Eq{"login": login})
+	if err != nil {
+		return nil, fmt.Errorf("build get user by login query: %w", err)
+	}
 
-	return r.get(ctx, query, login)
+	return r.get(ctx, query, args...)
 }
 
 // GetByEmail возвращает пользователя по email.
 func (r *Repository) GetByEmail(ctx context.Context, email string) (*model.User, error) {
-	const query = `
-SELECT uuid, login, email, password_hash, notification_methods, created_at, updated_at
-FROM users
-WHERE LOWER(email) = LOWER($1)
-LIMIT 1;
-`
+	query, args, err := buildGetUserQuery(sq.Eq{"email": email})
+	if err != nil {
+		return nil, fmt.Errorf("build get user by email query: %w", err)
+	}
 
-	return r.get(ctx, query, email)
+	return r.get(ctx, query, args...)
 }
 
 // get выполняет запрос к базе данных и возвращает пользователя.
 // Используется внутренними методами GetByUUID, GetByLogin и GetByEmail.
-func (r *Repository) get(ctx context.Context, query string, arg any) (*model.User, error) {
+func (r *Repository) get(ctx context.Context, query string, args ...any) (*model.User, error) {
 	var repoUser repoModel.User
 
 	err := r.pool.
-		QueryRow(ctx, query, arg).
+		QueryRow(ctx, query, args...).
 		Scan(
 			&repoUser.UUID,
 			&repoUser.Login,
@@ -78,4 +73,23 @@ func (r *Repository) get(ctx context.Context, query string, arg any) (*model.Use
 	}
 
 	return user, nil
+}
+
+// buildGetUserQuery собирает SQL-запрос для получения пользователя с указанным условием.
+func buildGetUserQuery(condition sq.Sqlizer) (string, []any, error) {
+	selectUserBuilder := sq.StatementBuilder.
+		PlaceholderFormat(sq.Dollar).
+		Select(
+			"uuid",
+			"login",
+			"email",
+			"password_hash",
+			"notification_methods",
+			"created_at",
+			"updated_at",
+		).
+		From("users").
+		Limit(1)
+
+	return selectUserBuilder.Where(condition).ToSql()
 }

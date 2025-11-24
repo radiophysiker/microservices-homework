@@ -15,7 +15,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS users_login_uindex
     ON users (login);
 
 CREATE UNIQUE INDEX IF NOT EXISTS users_email_uindex
-    ON users (LOWER(email));
+    ON users (email);
 -- +goose StatementEnd
 
 -- +goose Down

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
@@ -16,6 +17,8 @@ import (
 // Проверяет уникальность логина и email, хеширует пароль и создает пользователя в базе данных.
 // Возвращает UUID созданного пользователя или ошибку.
 func (s *Service) Register(ctx context.Context, info *model.UserInfo, password string) (string, error) {
+	info.Email = normalizeEmail(info.Email)
+
 	existingUser, err := s.userRepository.GetByLogin(ctx, info.Login)
 	if err != nil && !errors.Is(err, model.ErrUserNotFound) {
 		return "", fmt.Errorf("check login uniqueness: %w", err)
@@ -60,4 +63,8 @@ func (s *Service) Register(ctx context.Context, info *model.UserInfo, password s
 	}
 
 	return userUUID, nil
+}
+
+func normalizeEmail(email string) string {
+	return strings.ToLower(strings.TrimSpace(email))
 }
