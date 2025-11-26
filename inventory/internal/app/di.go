@@ -8,6 +8,8 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 
 	apiv1 "github.com/radiophysiker/microservices-homework/inventory/internal/api/inventory/v1"
 	"github.com/radiophysiker/microservices-homework/inventory/internal/config"
@@ -16,11 +18,14 @@ import (
 	"github.com/radiophysiker/microservices-homework/inventory/internal/service"
 	partSvc "github.com/radiophysiker/microservices-homework/inventory/internal/service/part"
 	"github.com/radiophysiker/microservices-homework/platform/pkg/closer"
+	grpcMiddleware "github.com/radiophysiker/microservices-homework/platform/pkg/middleware/grpc"
+	authpb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/auth/v1"
 )
 
 type diContainer struct {
 	mongoClient    *mongo.Client
 	collection     *mongo.Collection
+	iamConn        *grpc.ClientConn
 	partRepository repository.PartRepository
 	partService    service.PartService
 	api            *apiv1.API
@@ -114,4 +119,42 @@ func (d *diContainer) API(ctx context.Context) (*apiv1.API, error) {
 	}
 
 	return d.api, nil
+}
+
+func (d *diContainer) IAMConn(ctx context.Context) (*grpc.ClientConn, error) {
+	if d.iamConn == nil {
+		conn, err := grpc.NewClient(
+			config.AppConfig().IAMGRPC.IAMAddress(),
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
+		)
+		if err != nil {
+			return nil, fmt.Errorf("connect iam grpc: %w", err)
+		}
+
+		closer.AddNamed("iam gRPC connection", func(ctx context.Context) error {
+			return conn.Close()
+		})
+
+		d.iamConn = conn
+	}
+
+	return d.iamConn, nil
+}
+
+func (d *diContainer) IAMClient(ctx context.Context) (authpb.AuthServiceClient, error) {
+	conn, err := d.IAMConn(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return authpb.NewAuthServiceClient(conn), nil
+}
+
+func (d *diContainer) AuthInterceptor(ctx context.Context) (*grpcMiddleware.AuthInterceptor, error) {
+	iamClient, err := d.IAMClient(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	return grpcMiddleware.NewAuthInterceptor(iamClient), nil
 }

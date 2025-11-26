@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package common.v1;
+
+option go_package = "github.com/radiophysiker/microservices-homework/shared/pkg/proto/common/v1";
+
+import "google/protobuf/timestamp.proto";
+import "validate/validate.proto";
+
+// Сессия пользователя
+message Session {
+  string uuid = 1 [(validate.rules).string.uuid = true];  // UUID сессии
+  google.protobuf.Timestamp created_at = 2;               // Время создания
+  google.protobuf.Timestamp updated_at = 3;               // Время последнего обновления
+  google.protobuf.Timestamp expires_at = 4;               // Время истечения
+}
+
