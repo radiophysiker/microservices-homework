@@ -4,7 +4,10 @@ import "time"
 
 type LoggerConfig interface {
 	Level() string
-	AsJson() bool
+	AsJSON() bool
+	Outputs() []string
+	OTELCollectorEndpoint() string
+	ServiceName() string
 }
 
 type PostgresConfig interface {

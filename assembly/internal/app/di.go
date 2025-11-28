@@ -162,6 +162,7 @@ func (d *diContainer) OrderConsumerService(ctx context.Context) (svc.OrderConsum
 		}
 
 		d.orderConsumerService = orderConsumerSvc.NewService(
+			ctx,
 			consumer,
 			decoder,
 			producerService,

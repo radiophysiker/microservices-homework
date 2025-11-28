@@ -122,3 +122,181 @@ func (_c *MockLoggerConfig_Level_Call) RunAndReturn(run func() string) *MockLogg
 	_c.Call.Return(run)
 	return _c
 }
+
+// AsJSON provides a mock function for the type MockLoggerConfig
+func (_mock *MockLoggerConfig) AsJSON() bool {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for AsJSON")
+	}
+
+	var r0 bool
+	if returnFunc, ok := ret.Get(0).(func() bool); ok {
+		r0 = returnFunc()
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+	return r0
+}
+
+// MockLoggerConfig_AsJSON_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'AsJSON'
+type MockLoggerConfig_AsJSON_Call struct {
+	*mock.Call
+}
+
+// AsJSON is a helper method to define mock.On call
+func (_e *MockLoggerConfig_Expecter) AsJSON() *MockLoggerConfig_AsJSON_Call {
+	return &MockLoggerConfig_AsJSON_Call{Call: _e.mock.On("AsJSON")}
+}
+
+func (_c *MockLoggerConfig_AsJSON_Call) Run(run func()) *MockLoggerConfig_AsJSON_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockLoggerConfig_AsJSON_Call) Return(b bool) *MockLoggerConfig_AsJSON_Call {
+	_c.Call.Return(b)
+	return _c
+}
+
+func (_c *MockLoggerConfig_AsJSON_Call) RunAndReturn(run func() bool) *MockLoggerConfig_AsJSON_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// OTELCollectorEndpoint provides a mock function for the type MockLoggerConfig
+func (_mock *MockLoggerConfig) OTELCollectorEndpoint() string {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for OTELCollectorEndpoint")
+	}
+
+	var r0 string
+	if returnFunc, ok := ret.Get(0).(func() string); ok {
+		r0 = returnFunc()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	return r0
+}
+
+// MockLoggerConfig_OTELCollectorEndpoint_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'OTELCollectorEndpoint'
+type MockLoggerConfig_OTELCollectorEndpoint_Call struct {
+	*mock.Call
+}
+
+// OTELCollectorEndpoint is a helper method to define mock.On call
+func (_e *MockLoggerConfig_Expecter) OTELCollectorEndpoint() *MockLoggerConfig_OTELCollectorEndpoint_Call {
+	return &MockLoggerConfig_OTELCollectorEndpoint_Call{Call: _e.mock.On("OTELCollectorEndpoint")}
+}
+
+func (_c *MockLoggerConfig_OTELCollectorEndpoint_Call) Run(run func()) *MockLoggerConfig_OTELCollectorEndpoint_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockLoggerConfig_OTELCollectorEndpoint_Call) Return(s string) *MockLoggerConfig_OTELCollectorEndpoint_Call {
+	_c.Call.Return(s)
+	return _c
+}
+
+func (_c *MockLoggerConfig_OTELCollectorEndpoint_Call) RunAndReturn(run func() string) *MockLoggerConfig_OTELCollectorEndpoint_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// Outputs provides a mock function for the type MockLoggerConfig
+func (_mock *MockLoggerConfig) Outputs() []string {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for Outputs")
+	}
+
+	var r0 []string
+	if returnFunc, ok := ret.Get(0).(func() []string); ok {
+		r0 = returnFunc()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+	return r0
+}
+
+// MockLoggerConfig_Outputs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Outputs'
+type MockLoggerConfig_Outputs_Call struct {
+	*mock.Call
+}
+
+// Outputs is a helper method to define mock.On call
+func (_e *MockLoggerConfig_Expecter) Outputs() *MockLoggerConfig_Outputs_Call {
+	return &MockLoggerConfig_Outputs_Call{Call: _e.mock.On("Outputs")}
+}
+
+func (_c *MockLoggerConfig_Outputs_Call) Run(run func()) *MockLoggerConfig_Outputs_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockLoggerConfig_Outputs_Call) Return(_a0 []string) *MockLoggerConfig_Outputs_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *MockLoggerConfig_Outputs_Call) RunAndReturn(run func() []string) *MockLoggerConfig_Outputs_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ServiceName provides a mock function for the type MockLoggerConfig
+func (_mock *MockLoggerConfig) ServiceName() string {
+	ret := _mock.Called()
+
+	if len(ret) == 0 {
+		panic("no return value specified for ServiceName")
+	}
+
+	var r0 string
+	if returnFunc, ok := ret.Get(0).(func() string); ok {
+		r0 = returnFunc()
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+	return r0
+}
+
+// MockLoggerConfig_ServiceName_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ServiceName'
+type MockLoggerConfig_ServiceName_Call struct {
+	*mock.Call
+}
+
+// ServiceName is a helper method to define mock.On call
+func (_e *MockLoggerConfig_Expecter) ServiceName() *MockLoggerConfig_ServiceName_Call {
+	return &MockLoggerConfig_ServiceName_Call{Call: _e.mock.On("ServiceName")}
+}
+
+func (_c *MockLoggerConfig_ServiceName_Call) Run(run func()) *MockLoggerConfig_ServiceName_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run()
+	})
+	return _c
+}
+
+func (_c *MockLoggerConfig_ServiceName_Call) Return(s string) *MockLoggerConfig_ServiceName_Call {
+	_c.Call.Return(s)
+	return _c
+}
+
+func (_c *MockLoggerConfig_ServiceName_Call) RunAndReturn(run func() string) *MockLoggerConfig_ServiceName_Call {
+	_c.Call.Return(run)
+	return _c
+}

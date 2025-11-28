@@ -29,6 +29,7 @@ import (
 	"github.com/radiophysiker/microservices-homework/platform/pkg/logger"
 	grpcMiddleware "github.com/radiophysiker/microservices-homework/platform/pkg/middleware/grpc"
 	httpMiddleware "github.com/radiophysiker/microservices-homework/platform/pkg/middleware/http"
+	"github.com/radiophysiker/microservices-homework/platform/pkg/tracing"
 	authpb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/auth/v1"
 	inventorypb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/inventory/v1"
 	paymentpb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/payment/v1"
@@ -101,6 +102,9 @@ func (d *diContainer) InventoryConn(ctx context.Context) (*grpc.ClientConn, erro
 		conn, err := grpc.NewClient(
 			config.AppConfig().InventoryGRPC.InventoryAddress(),
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
+			grpc.WithUnaryInterceptor(
+				tracing.UnaryClientInterceptor(config.AppConfig().Tracing.ServiceName()),
+			),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("connect inventory grpc: %w", err)
@@ -121,6 +125,9 @@ func (d *diContainer) PaymentConn(ctx context.Context) (*grpc.ClientConn, error)
 		conn, err := grpc.NewClient(
 			config.AppConfig().PaymentGRPC.PaymentAddress(),
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
+			grpc.WithUnaryInterceptor(
+				tracing.UnaryClientInterceptor(config.AppConfig().Tracing.ServiceName()),
+			),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("connect payment grpc: %w", err)
@@ -141,6 +148,9 @@ func (d *diContainer) IAMConn(ctx context.Context) (*grpc.ClientConn, error) {
 		conn, err := grpc.NewClient(
 			config.AppConfig().IAMGRPC.IAMAddress(),
 			grpc.WithTransportCredentials(insecure.NewCredentials()),
+			grpc.WithUnaryInterceptor(
+				tracing.UnaryClientInterceptor(config.AppConfig().Tracing.ServiceName()),
+			),
 		)
 		if err != nil {
 			return nil, fmt.Errorf("connect iam grpc: %w", err)
@@ -291,6 +301,7 @@ func (d *diContainer) OrderService(ctx context.Context) (service.OrderService, e
 		}
 
 		d.orderService = orderSvc.NewService(
+			ctx,
 			orderRepo,
 			inventoryClient,
 			paymentClient,
