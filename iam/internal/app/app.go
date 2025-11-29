@@ -79,11 +79,14 @@ func (a *App) initDI(_ context.Context) error {
 }
 
 // initLogger инициализирует логгер на основе конфигурации.
-func (a *App) initLogger(_ context.Context) error {
-	return logger.Init(
-		config.AppConfig().Logger.Level(),
-		config.AppConfig().Logger.AsJson(),
-	)
+func (a *App) initLogger(ctx context.Context) error {
+	if err := logger.Init(ctx, config.AppConfig().Logger); err != nil {
+		return err
+	}
+
+	closer.AddNamed("OTLP logger exporter", logger.Shutdown)
+
+	return nil
 }
 
 // initCloser настраивает closer для graceful shutdown.

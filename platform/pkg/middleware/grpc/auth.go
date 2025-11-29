@@ -124,3 +124,25 @@ func ForwardSessionUUIDToGRPC(ctx context.Context) context.Context {
 
 	return metadata.AppendToOutgoingContext(ctx, SessionUUIDMetadataKey, sessionUUID)
 }
+
+// SessionForwardInterceptor простой интерцептор, который извлекает session-uuid из входящих
+// gRPC metadata и добавляет в контекст без валидации через IAM.
+// Используется когда аутентификация уже выполнена на уровне HTTP middleware.
+func SessionForwardInterceptor() grpc.UnaryServerInterceptor {
+	return func(
+		ctx context.Context,
+		req any,
+		info *grpc.UnaryServerInfo,
+		handler grpc.UnaryHandler,
+	) (any, error) {
+		md, ok := metadata.FromIncomingContext(ctx)
+		if ok {
+			sessionUUIDs := md.Get(SessionUUIDMetadataKey)
+			if len(sessionUUIDs) > 0 && sessionUUIDs[0] != "" {
+				ctx = AddSessionUUIDToContext(ctx, sessionUUIDs[0])
+			}
+		}
+
+		return handler(ctx, req)
+	}
+}

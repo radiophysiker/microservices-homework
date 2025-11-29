@@ -438,9 +438,10 @@ tasks:
   down-all:
     desc: Остановить и удалить все сервисы по очереди вместе с зависимостями
     cmds:
-      - task down-core
-      - task down-inventory
+      - task down-iam
       - task down-order
+      - task down-inventory
+      - task down-core
 
   services:start:
     desc: "Запускает все сервисы локально с переменными окружения"

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -13,16 +14,17 @@ import (
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
-	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/reflection"
 
 	"github.com/radiophysiker/microservices-homework/order/internal/config"
 	"github.com/radiophysiker/microservices-homework/platform/pkg/closer"
 	"github.com/radiophysiker/microservices-homework/platform/pkg/grpc/health"
 	"github.com/radiophysiker/microservices-homework/platform/pkg/logger"
+	"github.com/radiophysiker/microservices-homework/platform/pkg/metrics"
 	grpcMiddleware "github.com/radiophysiker/microservices-homework/platform/pkg/middleware/grpc"
 	httpMiddleware "github.com/radiophysiker/microservices-homework/platform/pkg/middleware/http"
 	"github.com/radiophysiker/microservices-homework/platform/pkg/migrator"
+	"github.com/radiophysiker/microservices-homework/platform/pkg/tracing"
 	orderpb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/order/v1"
 )
 
@@ -114,6 +116,8 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initDI,
 		a.initLogger,
 		a.initCloser,
+		a.initTracing,
+		a.initMetrics,
 		a.initMigrations,
 		a.initGRPCServer,
 		a.initHTTPGateway,
@@ -134,15 +138,38 @@ func (a *App) initDI(_ context.Context) error {
 	return nil
 }
 
-func (a *App) initLogger(_ context.Context) error {
-	return logger.Init(
-		config.AppConfig().Logger.Level(),
-		config.AppConfig().Logger.AsJson(),
-	)
+func (a *App) initLogger(ctx context.Context) error {
+	if err := logger.Init(ctx, config.AppConfig().Logger); err != nil {
+		return err
+	}
+
+	closer.AddNamed("OTLP logger exporter", logger.Shutdown)
+
+	return nil
 }
 
 func (a *App) initCloser(_ context.Context) error {
 	closer.SetLogger(logger.Logger())
+	return nil
+}
+
+func (a *App) initMetrics(ctx context.Context) error {
+	if err := metrics.InitProvider(ctx, config.AppConfig().Metrics); err != nil {
+		return err
+	}
+
+	closer.AddNamed("Metrics provider", metrics.Shutdown)
+
+	return nil
+}
+
+func (a *App) initTracing(ctx context.Context) error {
+	if err := tracing.InitTracer(ctx, config.AppConfig().Tracing); err != nil {
+		return err
+	}
+
+	closer.AddNamed("Tracer", tracing.ShutdownTracer)
+
 	return nil
 }
 
@@ -174,13 +201,11 @@ func (a *App) initGRPCServer(ctx context.Context) error {
 		return nil
 	})
 
-	authInterceptor, err := a.diContainer.AuthInterceptor(ctx)
-	if err != nil {
-		return fmt.Errorf("failed to create auth interceptor: %w", err)
-	}
-
 	a.grpcServer = grpc.NewServer(
-		grpc.UnaryInterceptor(authInterceptor.Unary()),
+		grpc.ChainUnaryInterceptor(
+			tracing.UnaryServerInterceptor(config.AppConfig().Tracing.ServiceName()),
+			grpcMiddleware.SessionForwardInterceptor(),
+		),
 	)
 
 	closer.AddNamed("gRPC server", func(ctx context.Context) error {
@@ -205,15 +230,14 @@ func (a *App) initHTTPGateway(ctx context.Context) error {
 	gatewayCtx, gatewayCancel := context.WithCancel(ctx)
 	a.gatewayCancel = gatewayCancel
 
+	// Пробрасываем заголовок X-Session-Uuid из HTTP в gRPC metadata (session-uuid)
 	mux := runtime.NewServeMux(
-		runtime.WithMetadata(func(ctx context.Context, req *http.Request) metadata.MD {
-			md := metadata.MD{}
-
-			if sessionUUID, ok := grpcMiddleware.GetSessionUUIDFromContext(ctx); ok && sessionUUID != "" {
-				md.Set(grpcMiddleware.SessionUUIDMetadataKey, sessionUUID)
+		runtime.WithIncomingHeaderMatcher(func(key string) (string, bool) {
+			if strings.EqualFold(key, httpMiddleware.SessionUUIDHeader) {
+				return grpcMiddleware.SessionUUIDMetadataKey, true
 			}
 
-			return md
+			return runtime.DefaultHeaderMatcher(key)
 		}),
 	)
 
@@ -229,6 +253,8 @@ func (a *App) initHTTPGateway(ctx context.Context) error {
 		return fmt.Errorf("failed to register gateway: %w", err)
 	}
 
+	tracingHandler := tracing.HTTPHandlerMiddleware(config.AppConfig().Tracing.ServiceName())(mux)
+
 	var authMiddleware *httpMiddleware.AuthMiddleware
 
 	authMiddleware, err = a.diContainer.AuthMiddleware(ctx)
@@ -236,7 +262,7 @@ func (a *App) initHTTPGateway(ctx context.Context) error {
 		return fmt.Errorf("failed to create auth middleware: %w", err)
 	}
 
-	handler := authMiddleware.Handle(mux)
+	handler := authMiddleware.Handle(tracingHandler)
 
 	httpAddr := config.AppConfig().OrderHTTP.Address()
 	a.httpServer = &http.Server{

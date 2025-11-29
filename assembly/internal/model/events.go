@@ -8,10 +8,10 @@ import (
 type PaymentMethod int
 
 const (
-	PaymentMethodUnspecified PaymentMethod = 0
-	PaymentMethodCard        PaymentMethod = 1
-	PaymentMethodSBP         PaymentMethod = 2
-	PaymentMethodCreditCard  PaymentMethod = 3
+	PaymentMethodUnspecified   PaymentMethod = 0
+	PaymentMethodCard          PaymentMethod = 1
+	PaymentMethodSBP           PaymentMethod = 2
+	PaymentMethodCreditCard    PaymentMethod = 3
 	PaymentMethodInvestorMoney PaymentMethod = 4
 )
 

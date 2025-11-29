@@ -2,7 +2,17 @@ package config
 
 type LoggerConfig interface {
 	Level() string
-	AsJson() bool
+	AsJSON() bool
+	Outputs() []string
+	OTELCollectorEndpoint() string
+	ServiceName() string
+}
+
+type TracingConfig interface {
+	CollectorEndpoint() string
+	ServiceName() string
+	ServiceVersion() string
+	Environment() string
 }
 
 type PaymentGRPCConfig interface {

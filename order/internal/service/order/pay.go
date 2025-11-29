@@ -71,5 +71,9 @@ func (s *Service) PayOrder(ctx context.Context, orderUUID uuid.UUID, paymentMeth
 		)
 	}
 
+	if s.revenueCounter != nil {
+		s.revenueCounter.Add(ctx, updated.TotalPrice)
+	}
+
 	return updated, nil
 }

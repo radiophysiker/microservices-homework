@@ -20,6 +20,7 @@ import (
 
 const configPath = "./deploy/compose/inventory/.env"
 
+// main функция для заполнения MongoDB тестовыми данными
 func main() {
 	clearFlag := flag.Bool("clear", false, "Clear existing data before seeding")
 
@@ -30,13 +31,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err := logger.Init(config.AppConfig().Logger.Level(), config.AppConfig().Logger.AsJson()); err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to init logger: %v\n", err)
-		os.Exit(1)
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
+
+	if err := logger.Init(ctx, config.AppConfig().Logger); err != nil {
+		fmt.Fprintf(os.Stderr, "Failed to init logger: %v\n", err)
+		return
+	}
+
+	defer func() {
+		if err := logger.Shutdown(ctx); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to shutdown logger: %v\n", err)
+		}
+	}()
 
 	// Подключение к MongoDB
 	client, err := mongo.Connect(ctx, options.Client().ApplyURI(config.AppConfig().Mongo.URI()))

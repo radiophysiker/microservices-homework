@@ -7,13 +7,13 @@ import (
 
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
 
 	"github.com/radiophysiker/microservices-homework/payment/internal/config"
 	"github.com/radiophysiker/microservices-homework/platform/pkg/closer"
 	"github.com/radiophysiker/microservices-homework/platform/pkg/grpc/health"
 	"github.com/radiophysiker/microservices-homework/platform/pkg/logger"
+	"github.com/radiophysiker/microservices-homework/platform/pkg/tracing"
 	pb "github.com/radiophysiker/microservices-homework/shared/pkg/proto/payment/v1"
 )
 
@@ -49,6 +49,7 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initDI,
 		a.initLogger,
 		a.initCloser,
+		a.initTracing,
 		a.initListener,
 		a.initGRPCServer,
 	}
@@ -68,15 +69,28 @@ func (a *App) initDI(_ context.Context) error {
 	return nil
 }
 
-func (a *App) initLogger(_ context.Context) error {
-	return logger.Init(
-		config.AppConfig().Logger.Level(),
-		config.AppConfig().Logger.AsJson(),
-	)
+func (a *App) initLogger(ctx context.Context) error {
+	if err := logger.Init(ctx, config.AppConfig().Logger); err != nil {
+		return err
+	}
+
+	closer.AddNamed("OTLP logger exporter", logger.Shutdown)
+
+	return nil
 }
 
 func (a *App) initCloser(_ context.Context) error {
 	closer.SetLogger(logger.Logger())
+	return nil
+}
+
+func (a *App) initTracing(ctx context.Context) error {
+	if err := tracing.InitTracer(ctx, config.AppConfig().Tracing); err != nil {
+		return err
+	}
+
+	closer.AddNamed("Tracer", tracing.ShutdownTracer)
+
 	return nil
 }
 
@@ -101,7 +115,11 @@ func (a *App) initListener(_ context.Context) error {
 }
 
 func (a *App) initGRPCServer(_ context.Context) error {
-	a.grpcServer = grpc.NewServer(grpc.Creds(insecure.NewCredentials()))
+	a.grpcServer = grpc.NewServer(
+		grpc.UnaryInterceptor(
+			tracing.UnaryServerInterceptor(config.AppConfig().Tracing.ServiceName()),
+		),
+	)
 
 	closer.AddNamed("gRPC server", func(ctx context.Context) error {
 		a.grpcServer.GracefulStop()

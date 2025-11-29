@@ -22,11 +22,11 @@ type ServiceTestSuite struct {
 
 // SetupTest запускается перед каждым тестом
 func (s *ServiceTestSuite) SetupTest() {
+	s.ctx = context.Background()
 	s.repo = repomocks.NewMockOrderRepository(s.T())
 	s.inventoryClient = clientmocks.NewMockInventoryClient(s.T())
 	s.paymentClient = clientmocks.NewMockPaymentClient(s.T())
-	s.service = NewService(s.repo, s.inventoryClient, s.paymentClient, nil)
-	s.ctx = context.Background()
+	s.service = NewService(s.ctx, s.repo, s.inventoryClient, s.paymentClient, nil)
 }
 
 // TestServiceSuite запускает все тесты suite

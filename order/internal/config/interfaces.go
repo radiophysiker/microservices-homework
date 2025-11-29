@@ -8,7 +8,22 @@ import (
 
 type LoggerConfig interface {
 	Level() string
-	AsJson() bool
+	AsJSON() bool
+	Outputs() []string
+	OTELCollectorEndpoint() string
+	ServiceName() string
+}
+
+type MetricsConfig interface {
+	CollectorEndpoint() string
+	CollectorInterval() time.Duration
+}
+
+type TracingConfig interface {
+	CollectorEndpoint() string
+	ServiceName() string
+	ServiceVersion() string
+	Environment() string
 }
 
 type InventoryGRPCConfig interface {

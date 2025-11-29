@@ -20,6 +20,7 @@ const (
 // Глобальный singleton логгер
 var (
 	globalLogger *logger
+	otlpShutdown func(ctx context.Context) error
 	initOnce     sync.Once
 	dynamicLevel zap.AtomicLevel
 )
@@ -29,25 +30,72 @@ type logger struct {
 	zapLogger *zap.Logger
 }
 
+// Config интерфейс конфигурации логера
+type Config interface {
+	Level() string                 // LOG_LEVEL
+	AsJSON() bool                  // LOGGER_AS_JSON
+	Outputs() []string             // LOG_OUTPUTS (comma-separated: "stdout,otlp")
+	OTELCollectorEndpoint() string // OTEL_COLLECTOR_ENDPOINT
+	ServiceName() string           // SERVICE_NAME
+}
+
 // Init инициализирует глобальный логгер.
-func Init(levelStr string, asJSON bool) error {
+func Init(ctx context.Context, cfg Config) error {
 	initOnce.Do(func() {
-		dynamicLevel = zap.NewAtomicLevelAt(parseLevel(levelStr))
+		dynamicLevel = zap.NewAtomicLevelAt(parseLevel(cfg.Level()))
 
 		encoderCfg := buildProductionEncoderConfig()
 
 		var encoder zapcore.Encoder
-		if asJSON {
+		if cfg.AsJSON() {
 			encoder = zapcore.NewJSONEncoder(encoderCfg)
 		} else {
 			encoder = zapcore.NewConsoleEncoder(encoderCfg)
 		}
 
-		core := zapcore.NewCore(
-			encoder,
-			zapcore.AddSync(os.Stdout),
-			dynamicLevel,
-		)
+		var cores []zapcore.Core
+
+		for _, output := range cfg.Outputs() {
+			out := strings.TrimSpace(strings.ToLower(output))
+
+			switch out {
+			case "":
+				continue
+			case "stdout":
+				stdoutCore := zapcore.NewCore(
+					encoder,
+					zapcore.AddSync(os.Stdout),
+					dynamicLevel,
+				)
+
+				cores = append(cores, stdoutCore)
+			case "otlp":
+				if cfg.OTELCollectorEndpoint() == "" {
+					continue
+				}
+
+				otlpCore, shutdown, err := newOTLPCore(ctx, cfg)
+				if err != nil {
+					continue
+				}
+
+				otlpShutdown = shutdown
+
+				cores = append(cores, otlpCore)
+			}
+		}
+
+		if len(cores) == 0 {
+			stdoutCore := zapcore.NewCore(
+				encoder,
+				zapcore.AddSync(os.Stdout),
+				dynamicLevel,
+			)
+
+			cores = append(cores, stdoutCore)
+		}
+
+		core := zapcore.NewTee(cores...)
 
 		zapLogger := zap.New(core, zap.AddCaller(), zap.AddCallerSkip(2))
 
@@ -61,17 +109,17 @@ func Init(levelStr string, asJSON bool) error {
 
 func buildProductionEncoderConfig() zapcore.EncoderConfig {
 	return zapcore.EncoderConfig{
-		TimeKey:        "timestamp",                 // время
-		LevelKey:       "level",                     // уровень логирования
-		NameKey:        "logger",                    // имя логгера, если используется
-		CallerKey:      "caller",                    // откуда вызван лог
-		MessageKey:     "message",                   // текст сообщения
-		StacktraceKey:  "stacktrace",                // стектрейс для ошибок
-		LineEnding:     zapcore.DefaultLineEnding,   // перенос строки
-		EncodeLevel:    zapcore.CapitalLevelEncoder, // INFO, ERROR
-		EncodeTime:     zapcore.ISO8601TimeEncoder,  // читаемый ISO 8601 формат
+		TimeKey:        "timestamp",
+		LevelKey:       "level",
+		NameKey:        "logger",
+		CallerKey:      "caller",
+		MessageKey:     "message",
+		StacktraceKey:  "stacktrace",
+		LineEnding:     zapcore.DefaultLineEnding,
+		EncodeLevel:    zapcore.CapitalLevelEncoder,
+		EncodeTime:     zapcore.ISO8601TimeEncoder,
 		EncodeDuration: zapcore.SecondsDurationEncoder,
-		EncodeCaller:   zapcore.ShortCallerEncoder, // короткий caller
+		EncodeCaller:   zapcore.ShortCallerEncoder,
 		EncodeName:     zapcore.FullNameEncoder,
 	}
 }
@@ -218,4 +266,13 @@ func fieldsFromContext(ctx context.Context) []zap.Field {
 	}
 
 	return fields
+}
+
+// Shutdown закрывает OTLP экспортер логов (если он был инициализирован)
+func Shutdown(ctx context.Context) error {
+	if otlpShutdown != nil {
+		return otlpShutdown(ctx)
+	}
+
+	return nil
 }

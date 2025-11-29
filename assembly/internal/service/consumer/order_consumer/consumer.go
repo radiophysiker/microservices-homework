@@ -3,6 +3,8 @@ package order_consumer
 import (
 	"context"
 
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/metric"
 	"go.uber.org/zap"
 
 	kafkaConverter "github.com/radiophysiker/microservices-homework/assembly/internal/converter/kafka"
@@ -15,17 +17,31 @@ type service struct {
 	orderPaidConsumer     kafka.Consumer
 	orderPaidDecoder      kafkaConverter.OrderPaidDecoder
 	shipAssembledProducer svc.ShipAssembledProducerService
+	assemblyDuration      metric.Float64Histogram
 }
 
 func NewService(
+	ctx context.Context,
 	orderPaidConsumer kafka.Consumer,
 	orderPaidDecoder kafkaConverter.OrderPaidDecoder,
 	shipAssembledProducer svc.ShipAssembledProducerService,
 ) svc.OrderConsumerService {
+	meter := otel.Meter("assembly-service")
+
+	assemblyDuration, err := meter.Float64Histogram(
+		"assembly_duration_seconds",
+		metric.WithDescription("Time taken to assemble a ship"),
+		metric.WithUnit("s"),
+	)
+	if err != nil {
+		logger.Error(ctx, "Failed to create assembly_duration_seconds histogram", zap.Error(err))
+	}
+
 	return &service{
 		orderPaidConsumer:     orderPaidConsumer,
 		orderPaidDecoder:      orderPaidDecoder,
 		shipAssembledProducer: shipAssembledProducer,
+		assemblyDuration:      assemblyDuration,
 	}
 }
 
