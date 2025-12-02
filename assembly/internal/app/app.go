@@ -11,6 +11,7 @@ import (
 	"github.com/radiophysiker/microservices-homework/assembly/internal/config"
 	"github.com/radiophysiker/microservices-homework/platform/pkg/closer"
 	"github.com/radiophysiker/microservices-homework/platform/pkg/logger"
+	"github.com/radiophysiker/microservices-homework/platform/pkg/metrics"
 )
 
 type App struct {
@@ -76,6 +77,7 @@ func (a *App) initDeps(ctx context.Context) error {
 		a.initDI,
 		a.initLogger,
 		a.initCloser,
+		a.initMetrics,
 	}
 
 	for _, f := range inits {
@@ -93,14 +95,27 @@ func (a *App) initDI(_ context.Context) error {
 	return nil
 }
 
-func (a *App) initLogger(_ context.Context) error {
-	return logger.Init(
-		config.AppConfig().Logger.Level(),
-		config.AppConfig().Logger.AsJson(),
-	)
+func (a *App) initLogger(ctx context.Context) error {
+	if err := logger.Init(ctx, config.AppConfig().Logger); err != nil {
+		return err
+	}
+
+	closer.AddNamed("OTLP logger exporter", logger.Shutdown)
+
+	return nil
 }
 
 func (a *App) initCloser(_ context.Context) error {
 	closer.SetLogger(logger.Logger())
+	return nil
+}
+
+func (a *App) initMetrics(ctx context.Context) error {
+	if err := metrics.InitProvider(ctx, config.AppConfig().Metrics); err != nil {
+		return err
+	}
+
+	closer.AddNamed("Metrics provider", metrics.Shutdown)
+
 	return nil
 }

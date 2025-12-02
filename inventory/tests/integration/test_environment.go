@@ -60,7 +60,7 @@ func (env *TestEnvironment) NewGRPCClient(ctx context.Context) (pb.InventoryServ
 func Setup(ctx context.Context) (*TestEnvironment, error) {
 	env := &TestEnvironment{}
 
-	if err := logger.Init("info", false); err != nil {
+	if err := logger.Init(ctx, testLoggerConfig{}); err != nil {
 		return nil, fmt.Errorf("failed to init logger: %w", err)
 	}
 
@@ -114,6 +114,8 @@ func Setup(ctx context.Context) (*TestEnvironment, error) {
 		fmt.Sprintf("MONGO_AUTH_DB=%s", TestMongoAuthDB),
 		"LOGGER_LEVEL=info",
 		"LOGGER_AS_JSON=false",
+		"LOG_OUTPUTS=stdout",
+		"SERVICE_NAME=inventory-integration",
 	}
 
 	wd, err := os.Getwd()
@@ -193,6 +195,16 @@ func Setup(ctx context.Context) (*TestEnvironment, error) {
 
 	return env, nil
 }
+
+type testLoggerConfig struct{}
+
+func (testLoggerConfig) Level() string { return "info" }
+func (testLoggerConfig) AsJSON() bool  { return false }
+func (testLoggerConfig) Outputs() []string {
+	return []string{"stdout"}
+}
+func (testLoggerConfig) OTELCollectorEndpoint() string { return "" }
+func (testLoggerConfig) ServiceName() string           { return "inventory-integration-test" }
 
 // Teardown останавливает и удаляет тестовое окружение
 func (env *TestEnvironment) Teardown(ctx context.Context) error {

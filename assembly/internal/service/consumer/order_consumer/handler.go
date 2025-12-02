@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
 	"go.uber.org/zap"
 
 	"github.com/radiophysiker/microservices-homework/assembly/internal/model"
@@ -52,6 +54,8 @@ func (s *service) OrderHandler(ctx context.Context, msg kafka.Message) error {
 		zap.Duration("delay", delay),
 	)
 
+	start := time.Now()
+
 	select {
 	case <-ctx.Done():
 		logger.Info(ctx, "Ship assembly cancelled",
@@ -61,6 +65,13 @@ func (s *service) OrderHandler(ctx context.Context, msg kafka.Message) error {
 
 		return ctx.Err()
 	case <-time.After(delay):
+	}
+
+	duration := time.Since(start).Seconds()
+	if s.assemblyDuration != nil {
+		s.assemblyDuration.Record(ctx, duration, metric.WithAttributes(
+			attribute.String("order.uuid", event.OrderUUID.String()),
+		))
 	}
 
 	// Создаем событие ShipAssembled

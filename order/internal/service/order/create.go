@@ -59,5 +59,9 @@ func (s *Service) CreateOrder(ctx context.Context, userUUID uuid.UUID, partUUIDs
 		return nil, fmt.Errorf("failed to create order: %w", err)
 	}
 
+	if s.ordersCounter != nil {
+		s.ordersCounter.Add(ctx, 1)
+	}
+
 	return order, nil
 }
